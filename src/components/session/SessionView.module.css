@@ -29,6 +29,75 @@
   margin-left: 113px;
 }
 
+.outlineTitle {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+}
+
+.outlineTitle span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.outlineTitle svg {
+  flex-shrink: 0;
+}
+
+.outline {
+  max-height: min(52dvh, 360px);
+  overflow: auto;
+  overscroll-behavior: contain;
+}
+
+.questionList {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.questionList li + li {
+  border-top: 1px solid var(--dsw-alias-border-l2);
+}
+
+.questionList button {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  width: 100%;
+  min-height: 48px;
+  padding: 8px 4px;
+  border: 0;
+  background: transparent;
+  color: var(--dsw-alias-label-primary);
+  font: inherit;
+  text-align: start;
+  cursor: pointer;
+}
+
+.questionList button:is(:hover, :focus-visible) {
+  background: var(--dsw-alias-interactive-bg-hover);
+}
+
+.questionList button span {
+  display: -webkit-box;
+  overflow: hidden;
+  overflow-wrap: anywhere;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+}
+
+.questionList button svg {
+  flex-shrink: 0;
+  color: var(--dsw-alias-label-secondary);
+}
+
 .inputContainer {
   position: sticky;
   bottom: 0;

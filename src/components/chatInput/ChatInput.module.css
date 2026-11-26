@@ -251,8 +251,14 @@
   min-width: 0;
 }
 
-.collapsedToggles .toggleLabel {
+.shortLabel,
+.compactToggles .toggleLabel,
+.collapsedToggles .shortLabel {
   display: none;
+}
+
+.compactToggles:not(.collapsedToggles) .shortLabel {
+  display: inline;
 }
 
 .toggle {
@@ -351,19 +357,20 @@
 }
 
 :global([data-ds-android]) .functionRow {
-  margin: 5px 9px 8px;
-  padding: 2px 3px;
+  gap: 8px;
+  margin: 4px 8px 8px;
+  padding: 2px;
 }
 
 :global([data-ds-android]) .toggles {
-  gap: 8px;
+  gap: 6px;
 }
 
 :global([data-ds-android]) .toggle {
   min-width: 44px;
   min-height: 44px;
   padding-inline: 8px;
-  border-radius: 10px;
+  border-radius: 14px;
   border-color: var(--ds-app-line);
 }
 
@@ -390,6 +397,17 @@
 :global([data-ds-android]) .functionRow:not(.withSend) .right > :last-child > button {
   border-radius: 14px;
   background: var(--ds-app-accent-soft);
+}
+
+.stackedToggles .toggle,
+:global([data-ds-android]) .stackedToggles .toggle {
+  flex-direction: column;
+  gap: 1px;
+  min-width: 44px;
+  height: 44px;
+  padding: 2px 4px;
+  font-size: 11px;
+  line-height: 1.15;
 }
 
 @media (max-width: 300px) {

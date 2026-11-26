@@ -23,9 +23,32 @@
   align-items: center;
 }
 
+.titleButton {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  min-height: 44px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+}
+
+.titleButton span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.titleButton svg {
+  flex-shrink: 0;
+  color: var(--dsw-alias-label-secondary);
+}
+
 :global([data-ds-android]) .header {
-  height: 66px;
-  gap: clamp(8px, 2.8vw, 12px);
+  height: 60px;
+  gap: clamp(6px, 2.4vw, 10px);
   padding: 6px var(--ds-app-gutter);
   border-bottom: 1px solid var(--ds-app-line);
   background: var(--ds-app-panel);
@@ -42,7 +65,7 @@
 :global([data-ds-android]) .models > button {
   min-height: 44px;
   min-width: 65px;
-  padding-inline: 11px 35px;
+  padding-inline: 10px 32px;
   border: 1px solid var(--ds-app-line);
   border-radius: 12px;
   background-color: var(--ds-app-tint);
@@ -60,10 +83,24 @@
 
 @media (max-width: 330px) {
   :global([data-ds-android]) .header {
-    gap: 6px;
+    gap: 4px;
+    padding-inline: 8px;
   }
 
   :global([data-ds-android]) .title {
     font-size: 14px;
+  }
+
+  :global([data-ds-android]) .titleButton span {
+    display: -webkit-box;
+    white-space: normal;
+    overflow-wrap: anywhere;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+  }
+
+  :global([data-ds-android]) .models > button {
+    min-width: 0;
+    padding-inline: 7px 28px;
   }
 }

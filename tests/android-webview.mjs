@@ -328,7 +328,7 @@ async function testGitHubUpdates() {
       if (typeof request?.method !== 'string' || !request.method.startsWith('github.')) {
         return original.call(this, data, ...rest)
       }
-      window.qaGitHubRequests.push({ method: request.method, empty: request.value === null })
+      window.qaGitHubRequests.push({ method: request.method, value: request.value })
       const reply = { id: request.id, ok: true, value: window.qaGitHubResult }
       queueMicrotask(() => {
         this.dispatchEvent(new MessageEvent('message', { data: JSON.stringify(reply) }))
@@ -369,12 +369,175 @@ async function testGitHubUpdates() {
     }
     assert.deepEqual(
       await evaluate(() => window.qaGitHubRequests),
-      checks.map(() => ({ method: 'github.release.check', empty: true }))
+      checks.map(() => ({ method: 'github.release.check', value: null }))
     )
+    await evaluate((tag) => {
+      window.qaGitHubResult = { status: 'release', tag, downloadAvailable: true }
+    }, newer)
+    assert(await clickUpdateCheck())
+    await until(
+      () =>
+        evaluate(() =>
+          [...document.querySelectorAll('button')].some(
+            (button) => button.textContent.trim() === '下载更新'
+          )
+        ),
+      'in-app download button'
+    )
+    await evaluate(() => {
+      window.qaGitHubResult = { status: 'ready' }
+    })
+    assert(await clickLabel('^下载更新$', '[role="tabpanel"] button'))
+    await until(async () => (await updateStatus()).includes('安装包已校验'), 'verified package')
+    await evaluate(() => {
+      window.qaGitHubResult = { status: 'installerOpened' }
+    })
+    assert(await clickLabel('^安装更新$', '[role="tabpanel"] button'))
+    await until(async () => (await updateStatus()).includes('安卓安装界面'), 'installer state')
+    assert.deepEqual((await evaluate(() => window.qaGitHubRequests)).slice(-3), [
+      { method: 'github.release.check', value: null },
+      { method: 'github.release.download', value: newer },
+      { method: 'github.release.install', value: newer },
+    ])
     await snapshot('GitHub更新')
   } finally {
     await evaluate(() => window.qaRestoreGitHubBridge?.())
   }
+}
+
+async function testLivePackageDownload() {
+  await until(async () => (await find('#connect-key')) || (await find('textarea')), 'app ready')
+  const isConnectionScreen = await find('#connect-key')
+  let panel = '[role="tabpanel"]'
+  let installed
+  if (isConnectionScreen) {
+    panel = '[role="dialog"]'
+    assert(await clickLabel('^检查更新$'))
+    await until(() => find(panel + ' dd'), 'connection-screen update panel')
+    installed = await evaluate(
+      (selector) => document.querySelector(selector + ' dd').textContent,
+      panel
+    )
+  } else {
+    installed = await openUpdates()
+  }
+  const feedback = () =>
+    evaluate(
+      (selector) => document.querySelector(selector + ' [role="status"]')?.textContent ?? '',
+      panel
+    )
+  const expected = process.env.DS_QA_EXPECTED_RELEASE
+  assert.match(expected ?? '', /^v\d+\.\d+\.\d+$/)
+  assert.notEqual('v' + installed, expected)
+  assert(await clickLabel('^检查更新$', panel + ' button'))
+  await until(async () => (await feedback()).includes(expected), 'live release ' + expected)
+  assert(await clickLabel('^下载更新$', panel + ' button'))
+  await until(async () => (await feedback()).includes('安装包已校验'), 'verified live APK', 60_000)
+  await snapshot('已下载并验证安装包')
+  assert(await clickLabel('^安装更新$', panel + ' button'))
+  console.log('PASS: GitHub APK downloaded and verified by the installed app')
+}
+
+async function testChatExtras() {
+  await until(() => find('textarea'), 'chat restored')
+  assert(await clickLabel('^打开边栏$'))
+  assert(await clickLabel('^(开启新对话|新建对话|新对话|开始新对话)$'))
+  await until(
+    () =>
+      evaluate(async () => {
+        await document.fonts.ready
+        return ['深度思考', '智能搜索'].every((label) =>
+          document.querySelector(`button[aria-label="${label}"]`)?.innerText.trim()
+        )
+      }),
+    'both composer modes retain readable labels'
+  )
+  await snapshot('中文首页')
+  const prompts = ['目录核验第一问', '目录核验第二问']
+  for (const [index, prompt] of prompts.entries()) {
+    await until(() => find('textarea'), 'active composer')
+    assert(await type('textarea', prompt))
+    assert(await clickLabel('^发送$'))
+    await until(
+      async () =>
+        await evaluate(
+          (count) =>
+            document.querySelectorAll('[data-question-id]').length === count &&
+            document.body.innerText.split('可以按选书、阅读、整理三步安排。').length > count,
+          index + 1
+        ),
+      'answer ' + (index + 1)
+    )
+  }
+  assert(await clickLabel('^提问目录$'))
+  await until(() => find('[role="dialog"]'), 'question outline')
+  assert(await visibleText(prompts[0]))
+  assert(await visibleText(prompts[1]))
+  await snapshot('提问目录')
+  await back()
+  assert.equal(await find('[role="dialog"]'), false)
+  assert(await clickLabel('^提问目录$'))
+  assert(await clickLabel('^' + prompts[0] + '$', '[role="dialog"] button'))
+  await until(
+    () =>
+      evaluate(() => {
+        const first = document.querySelector('[data-question-id]')
+        const top = first?.getBoundingClientRect().top
+        return top >= 0 && top < innerHeight / 2
+      }),
+    'scroll to the first question'
+  )
+  await snapshot('跳转到提问')
+
+  await evaluate(() => {
+    const original = MessagePort.prototype.postMessage
+    window.qaExport = { name: null, chunks: [], complete: false }
+    window.qaRestoreExportBridge = () => {
+      MessagePort.prototype.postMessage = original
+      delete window.qaRestoreExportBridge
+      delete window.qaExport
+    }
+    MessagePort.prototype.postMessage = function (data, ...rest) {
+      const request = typeof data === 'string' ? JSON.parse(data) : null
+      switch (request?.method) {
+        case 'export.pick':
+          window.qaExport.name = JSON.parse(request.value)
+          break
+        case 'export.chunk':
+          window.qaExport.chunks.push(request.value)
+          break
+        case 'export.close':
+          window.qaExport.complete = true
+          break
+        default:
+          return original.call(this, data, ...rest)
+      }
+      const reply = { id: request.id, ok: true, value: true }
+      queueMicrotask(() =>
+        this.dispatchEvent(new MessageEvent('message', { data: JSON.stringify(reply) }))
+      )
+    }
+  })
+  try {
+    assert(await clickLabel('^打开边栏$'))
+    assert(await click('[aria-current="page"] button[aria-label="更多"]'))
+    await snapshot('会话导出入口')
+    assert(await clickLabel('^导出为 Markdown$'))
+    await until(() => evaluate(() => window.qaExport.complete), 'Markdown export completed')
+    const exported = await evaluate(() => window.qaExport)
+    assert.equal(exported.name.type, 'text/markdown')
+    assert.match(exported.name.filename, /\.md$/)
+    const body = Buffer.concat(
+      exported.chunks.map((chunk) => Buffer.from(chunk, 'base64'))
+    ).toString('utf8')
+    assert(body.startsWith('# '))
+    for (const prompt of prompts) assert(body.includes(prompt))
+    assert(body.includes('**周六**'))
+    assert(!body.includes(fakeKey))
+  } finally {
+    await evaluate(() => window.qaRestoreExportBridge?.())
+  }
+  console.log('PASS: question navigation, Android back, and local Markdown export')
 }
 
 try {
@@ -398,7 +561,11 @@ try {
     console.log('PASS: requested an Android document destination for history export')
   } else if (mode === 'github-updates') {
     await testGitHubUpdates()
-    console.log('PASS: manual GitHub check UI, public errors, current version, and release link')
+    console.log('PASS: GitHub check, download, installer action, and release fallback UI')
+  } else if (mode === 'github-download-live') {
+    await testLivePackageDownload()
+  } else if (mode === 'chat-extras') {
+    await testChatExtras()
   } else if (mode === 'typography' || mode === 'typography-restore') {
     await testTypography(mode === 'typography-restore')
   } else if (mode === 'github-live') {

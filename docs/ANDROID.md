@@ -9,6 +9,7 @@ Android 客户端默认显示简体中文。需要切换时，打开「设置 �
 - Flash 保留官方底座的图片输入、联网搜索和自动命名。Pro 支持文本对话和深度思考，标题取自首条消息。
 - 设置中保存的自定义指令会随对话请求发送给 DeepSeek。同一回答的续写沿用开始生成时的指令。
 - 会话抽屉可以搜索标题、消息正文和文件名，并可通过会话菜单置顶、分享当前分支的文本。记录保存在本机。设置提供 ZIP 导出与恢复。
+- 对话有两次或更多提问时，点标题展开「提问目录」，选一条即可跳到对应消息。会话菜单的「导出为 Markdown」保存当前分支的正文和附件名称。
 - 从输入框「添加附件」选择拍照、相册或文件。相册通过 Android 系统选择器授权已选照片，拍照通过系统相机取得图片。Flash 可发送图片。点击对话里的附件可以保存原件。
 - 首页的「快捷提问」提供总结、润色和解释，把提示词放进输入框，确认发送后才调用 API。
 
@@ -18,7 +19,9 @@ Android 客户端默认显示简体中文。需要切换时，打开「设置 �
 
 如果 GitHub API 限流，应用读取同一仓库的最新公开发行链接，核对其指向的正式版本标签。[GitHub 最新发行链接](https://docs.github.com/en/repositories/releasing-projects-on-github/linking-to-releases)
 
-有新版本时，点「前往 GitHub 下载」在浏览器中打开对应版本的公开发布页，然后下载签名 APK。覆盖升级需要使用相同包名、相同签名和更高的版本号。
+0.3.3 起，发现新版本后可点「下载更新」，校验完成后点「安装更新」。首次使用时，按 Android 提示允许 DS 对话安装应用，返回后再点「安装更新」，在系统安装界面确认。0.3.2 及更早的版本需要从 GitHub 下载一次新包并覆盖安装。
+
+应用内下载使用 `ds-chat-<版本>-android.apk` 作为附件名，使用 `v<版本>` 作为标签。应用核对安装包的包名、签名证书和版本，有发布摘要时同时核对 SHA-256 和文件大小。
 
 ## 数据与连接
 
@@ -52,4 +55,4 @@ pnpm run build
 
 ## 来源
 
-官方 `chat-demo` 固定在提交 `cdf9617c5f265d58e0e1805635b2c10a3d41284d`，保留原版权和 MIT 许可。自定义指令和模型发现借鉴社区功能，本项目实现相应代码。[官方底座](https://github.com/deepseek-ai/chat-demo/tree/cdf9617c5f265d58e0e1805635b2c10a3d41284d) · [DeepsleepChat](https://github.com/NyaNyaMan/DeepsleepChat) · [Astra](https://github.com/Greenchannel/astra)
+官方 `chat-demo` 固定在提交 `cdf9617c5f265d58e0e1805635b2c10a3d41284d`，保留原版权和 MIT 许可。自定义指令、模型发现、提问目录和 Markdown 导出借鉴社区功能，本项目实现相应代码。[官方底座](https://github.com/deepseek-ai/chat-demo/tree/cdf9617c5f265d58e0e1805635b2c10a3d41284d) · [DeepsleepChat](https://github.com/NyaNyaMan/DeepsleepChat) · [Astra](https://github.com/Greenchannel/astra) · [Cherry Studio 移动版](https://github.com/CherryHQ/cherry-studio-app/releases/tag/v0.6.1)

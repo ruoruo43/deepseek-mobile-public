@@ -13,7 +13,7 @@ const nativeErrors = [
 type NativeError = (typeof nativeErrors)[number]
 export type GitHubUpdateError = NativeError | 'invalidInstalledVersion' | 'hostError'
 export type GitHubUpdateResult =
-  | { status: 'available'; tag: string; url: string }
+  | { status: 'available'; tag: string; url: string; downloadAvailable?: true }
   | { status: 'current'; tag: string }
   | { status: GitHubUpdateError }
 
@@ -53,6 +53,13 @@ export function parseGitHubUpdateResult(
 
   const component = release.findIndex((value, index) => value !== installed[index])
   return component !== -1 && release[component] > installed[component]
-    ? { status: 'available', tag, url: releasePage + tag }
+    ? {
+        status: 'available',
+        tag,
+        url: releasePage + tag,
+        ...('downloadAvailable' in result && result.downloadAvailable === true
+          ? { downloadAvailable: true }
+          : {}),
+      }
     : { status: 'current', tag }
 }

@@ -114,6 +114,12 @@ public final class MainActivity extends Activity {
                 case "github.release.check":
                     githubUpdates.check(result -> reply(sourcePort, requestId, true, result));
                     break;
+                case "github.release.download":
+                    githubUpdates.download(value, result -> reply(sourcePort, requestId, true, result));
+                    break;
+                case "github.release.install":
+                    reply(id, true, githubUpdates.install(value));
+                    break;
                 case "appearance.textZoom":
                     int zoom = Integer.parseInt(value);
                     if (zoom < 90 || zoom > 130) throw new IllegalArgumentException("Invalid text zoom");
@@ -277,6 +283,7 @@ public final class MainActivity extends Activity {
     @Override
     protected void onActivityResult(int request, int result, Intent data) {
         super.onActivityResult(request, result, data);
+        if (githubUpdates.onActivityResult(request)) return;
         if (request == PICK_FILE) {
             finishFileChoice(pickedContent(result, data));
         } else if (request == CAPTURE_PHOTO) {

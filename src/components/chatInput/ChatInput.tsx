@@ -65,7 +65,17 @@ const Input = ({ sessionId }: { sessionId: string | null }) => {
     }
 
     const updateLabels = () => {
-      toggles.classList.remove(styles.collapsedToggles)
+      toggles.classList.remove(
+        styles.compactToggles,
+        styles.stackedToggles,
+        styles.collapsedToggles
+      )
+      if (toggles.scrollWidth > toggles.clientWidth) {
+        toggles.classList.add(styles.compactToggles)
+      }
+      if (toggles.scrollWidth > toggles.clientWidth) {
+        toggles.classList.add(styles.stackedToggles)
+      }
       toggles.classList.toggle(styles.collapsedToggles, toggles.scrollWidth > toggles.clientWidth)
     }
 
@@ -228,6 +238,7 @@ const Input = ({ sessionId }: { sessionId: string | null }) => {
             >
               <IconThinkOutline14 />
               <span className={styles.toggleLabel}>{t('thinkingSwitch')}</span>
+              <span className={styles.shortLabel}>{t('thinkingShort')}</span>
             </button>
           </Tooltip>
           <Tooltip content={t(flash ? 'deactivatedSearchTooltip' : 'flashSearchOnly')}>
@@ -241,6 +252,7 @@ const Input = ({ sessionId }: { sessionId: string | null }) => {
             >
               <IconGlobeLanguageOutline14 />
               <span className={styles.toggleLabel}>{t('search')}</span>
+              <span className={styles.shortLabel}>{t('searchShort')}</span>
             </button>
           </Tooltip>
         </div>

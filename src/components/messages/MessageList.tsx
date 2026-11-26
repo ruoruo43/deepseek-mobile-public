@@ -1,10 +1,6 @@
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { useIsMobile } from '../../app/viewport.js'
-import {
-  buildMessageVersions,
-  getVisibleMessages,
-  type MessageVersions,
-} from '../../services/chat/branches.js'
+import { buildMessageVersions, type MessageVersions } from '../../services/chat/branches.js'
 import { selectMessageVersion } from '../../services/chat/store.js'
 import type { Session } from '../../services/chat/types.js'
 import { closeSearchPanel } from '../search/searchPanelState.js'
@@ -35,12 +31,16 @@ const EMPTY_VERSIONS: MessageVersions = { ids: [], index: -1 }
 
 export const MessageList = ({
   session,
+  messages,
   streaming,
   footer,
+  jump,
 }: {
   session: Session
+  messages: Message[]
   streaming: boolean
   footer: React.ReactNode
+  jump: { messageId: string } | null
 }) => {
   const isMobile = useIsMobile()
   const scrollRef = useRef<HTMLDivElement>(null)
@@ -48,7 +48,6 @@ export const MessageList = ({
   const stickyRef = useRef(true)
   const scrollTopRef = useRef(0)
   const restoreScrollRef = useRef<{ messageId: string; top: number } | null>(null)
-  const messages = getVisibleMessages(session)
   const [previousVersions, setPreviousVersions] = useState(() =>
     buildMessageVersions(session, new Map())
   )
@@ -100,6 +99,23 @@ export const MessageList = ({
   }, [session.id, lastMessageId, scrollToBottom])
 
   useEffect(closeSearchPanel, [session.id, lastMessageId])
+
+  useLayoutEffect(() => {
+    const scroll = scrollRef.current
+    if (!jump || !scroll) {
+      return
+    }
+    const question = scroll.querySelector<HTMLElement>(
+      `[data-question-id="${CSS.escape(jump.messageId)}"]`
+    )
+    if (!question) {
+      return
+    }
+    stickyRef.current = false
+    scroll.scrollTop +=
+      question.getBoundingClientRect().top - scroll.getBoundingClientRect().top - 12
+    scrollTopRef.current = scroll.scrollTop
+  }, [jump])
 
   const selectVersion = useCallback(
     (messageId: string, anchorTop: number) => {

@@ -1,9 +1,15 @@
 import clsx from 'clsx'
 import { memo, useState } from 'react'
 import { useTranslate } from '../../i18n/index.js'
-import { IconEditOutline16, IconEllipsisOutline16, IconTrashOutline16 } from '../base/icons.js'
+import {
+  IconDownloadOutline16,
+  IconEditOutline16,
+  IconEllipsisOutline16,
+  IconLinkOutline14,
+  IconTrashOutline16,
+} from '../base/icons.js'
 import { renameSession, selectSession } from '../../services/chat/store.js'
-import { shareSession } from '../../services/chat/share.js'
+import { exportSessionMarkdown, shareSession } from '../../services/chat/share.js'
 import { androidApp } from '../../services/android.js'
 import { togglePinnedSession } from '../../services/mobileTools.js'
 import { setPinnedSessionIds, useSettings } from '../../services/settings.js'
@@ -56,6 +62,7 @@ export const SessionItem = memo(function SessionItem({
   return (
     <div
       className={clsx(styles.item, active && styles.active)}
+      aria-current={active ? 'page' : undefined}
       onClick={() => {
         selectSession(session.id)
         closeMobileSider()
@@ -80,8 +87,14 @@ export const SessionItem = memo(function SessionItem({
                   {
                     key: 'share',
                     label: t('shareChat'),
-                    icon: <span aria-hidden="true">↗</span>,
+                    icon: <IconLinkOutline14 />,
                     onSelect: () => void shareSession(session.id),
+                  },
+                  {
+                    key: 'export-markdown',
+                    label: t('chatExportMarkdown'),
+                    icon: <IconDownloadOutline16 />,
+                    onSelect: () => void exportSessionMarkdown(session.id),
                   },
                 ]
               : []),

@@ -6,6 +6,8 @@ type Method =
   | 'key.read'
   | 'key.write'
   | 'github.release.check'
+  | 'github.release.download'
+  | 'github.release.install'
   | 'appearance.textZoom'
   | 'share.text'
   | 'export.pick'
@@ -72,7 +74,12 @@ function callAndroid(method: Method, value: string | null = null): Promise<unkno
       reject(new Error('Android host request failed'))
     }
     // The document picker can stay open as long as the person needs.
-    const timeout = method === 'github.release.check' ? 22_000 : 12_000
+    const timeout =
+      method === 'github.release.download'
+        ? 175_000
+        : method === 'github.release.check'
+          ? 22_000
+          : 12_000
     const timer = method === 'export.pick' && androidPort ? undefined : setTimeout(fail, timeout)
     pending.set(id, {
       request,
@@ -97,6 +104,10 @@ export async function readAndroidKey(): Promise<string | null> {
 export const writeAndroidKey = (key: string | null) => callAndroid('key.write', key)
 
 export const checkGitHubRelease = () => callAndroid('github.release.check')
+
+export const downloadGitHubUpdate = (tag: string) => callAndroid('github.release.download', tag)
+
+export const installGitHubUpdate = (tag: string) => callAndroid('github.release.install', tag)
 
 export const setAndroidTextZoom = (percent: number) =>
   callAndroid('appearance.textZoom', String(percent))

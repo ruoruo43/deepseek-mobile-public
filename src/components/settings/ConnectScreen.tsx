@@ -84,7 +84,7 @@ export function ConnectScreen() {
           closable
           onClose={() => setShowUpdates(false)}
         >
-          <GitHubUpdates />
+          <GitHubUpdates embedded />
         </Modal>
       ) : null}
       <Toast />

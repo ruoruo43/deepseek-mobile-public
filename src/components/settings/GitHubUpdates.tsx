@@ -1,6 +1,11 @@
+import clsx from 'clsx'
 import { useState } from 'react'
 import { useTranslate, type TranslationKey } from '../../i18n/index.js'
-import { checkGitHubRelease } from '../../services/android.js'
+import {
+  checkGitHubRelease,
+  downloadGitHubUpdate,
+  installGitHubUpdate,
+} from '../../services/android.js'
 import {
   parseGitHubUpdateResult,
   type GitHubUpdateError,
@@ -22,40 +27,89 @@ const errorMessages = {
   hostError: 'githubUpdateUnavailable',
 } satisfies Record<GitHubUpdateError, TranslationKey>
 
-export const GitHubUpdates = () => {
+const packageMessages = {
+  ready: 'githubUpdateReady',
+  permissionSettings: 'githubUpdateInstallPermission',
+  installerOpened: 'githubUpdateInstallerOpened',
+  downloadRequired: 'githubUpdateDownloadRequired',
+  downloadFailed: 'githubUpdateDownloadFailed',
+  invalidApk: 'githubUpdateInvalidApk',
+  installFailed: 'githubUpdateInstallFailed',
+  busy: 'githubUpdateBusy',
+} satisfies Record<string, TranslationKey>
+
+export const GitHubUpdates = ({ embedded = false }: { embedded?: boolean }) => {
   const t = useTranslate()
   const installed = document.querySelector<HTMLMetaElement>(
     'meta[name="application-version"]'
   )?.content
-  const [checking, setChecking] = useState(false)
+  const [operation, setOperation] = useState<'check' | 'download' | 'install' | null>(null)
   const [result, setResult] = useState<GitHubUpdateResult | null>(null)
+  const [apkReady, setApkReady] = useState(false)
+  const [packageMessage, setPackageMessage] = useState<TranslationKey | null>(null)
+  const release = result?.status === 'available' ? result : null
 
   const check = async () => {
-    setChecking(true)
+    setOperation('check')
     setResult(null)
+    setApkReady(false)
+    setPackageMessage(null)
     try {
       setResult(parseGitHubUpdateResult(installed || null, await checkGitHubRelease()))
     } catch {
       setResult({ status: 'hostError' })
     } finally {
-      setChecking(false)
+      setOperation(null)
+    }
+  }
+
+  const handlePackage = async () => {
+    if (!release?.downloadAvailable) {
+      return
+    }
+    setOperation(apkReady ? 'install' : 'download')
+    setPackageMessage(null)
+    try {
+      const response = await (apkReady
+        ? installGitHubUpdate(release.tag)
+        : downloadGitHubUpdate(release.tag))
+      const status =
+        typeof response === 'object' && response !== null && 'status' in response
+          ? (Object.keys(packageMessages).find((value) => value === response.status) as
+              | keyof typeof packageMessages
+              | undefined)
+          : undefined
+      if (status === 'ready' || status === 'downloadRequired') {
+        setApkReady(status === 'ready')
+      }
+      setPackageMessage(status ? packageMessages[status] : 'githubUpdateDownloadFailed')
+    } catch {
+      setPackageMessage(apkReady ? 'githubUpdateInstallFailed' : 'githubUpdateDownloadFailed')
+    } finally {
+      setOperation(null)
     }
   }
 
   return (
-    <div className={styles.panel}>
+    <div className={clsx(styles.panel, embedded && styles.embedded)}>
       <div className={styles.header}>
         <dl className={styles.version}>
           <dt>{t('githubUpdateInstalledVersion')}</dt>
           <dd>{installed || t('githubUpdateUnknownVersion')}</dd>
         </dl>
-        <Button size="m" disabled={checking} aria-busy={checking} onClick={() => void check()}>
+        <Button
+          size="m"
+          variant={release ? 'outlined' : 'primary'}
+          disabled={operation !== null}
+          aria-busy={operation === 'check'}
+          onClick={() => void check()}
+        >
           <IconRefreshOutline16 />
           {t('githubUpdateCheck')}
         </Button>
       </div>
       <div className={styles.feedback} role="status">
-        {checking && <p>{t('githubUpdateChecking')}</p>}
+        {operation === 'check' && <p>{t('githubUpdateChecking')}</p>}
         {result &&
           ('tag' in result ? (
             <p>
@@ -66,12 +120,22 @@ export const GitHubUpdates = () => {
           ) : (
             <p className={styles.error}>{t(errorMessages[result.status])}</p>
           ))}
+        {operation === 'download' && <p>{t('githubUpdateDownloading')}</p>}
+        {operation === 'install' && <p>{t('githubUpdateOpeningInstaller')}</p>}
+        {packageMessage && <p>{t(packageMessage)}</p>}
       </div>
-      {result?.status === 'available' && (
-        <a className={styles.link} href={result.url}>
-          <IconLinkOutline14 />
-          {t('githubUpdateOpenRelease')}
-        </a>
+      {release && (
+        <div className={styles.actions}>
+          {release.downloadAvailable && (
+            <Button size="m" disabled={operation !== null} onClick={() => void handlePackage()}>
+              {t(apkReady ? 'githubUpdateInstall' : 'githubUpdateDownload')}
+            </Button>
+          )}
+          <a className={styles.link} href={release.url}>
+            <IconLinkOutline14 />
+            {t(release.downloadAvailable ? 'githubUpdateReleaseNotes' : 'githubUpdateOpenRelease')}
+          </a>
+        </div>
       )}
     </div>
   )

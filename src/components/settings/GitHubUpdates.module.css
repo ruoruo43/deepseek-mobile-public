@@ -6,6 +6,13 @@
   background: var(--dsw-alias-bg-layer-2);
 }
 
+.embedded {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+}
+
 .header {
   display: flex;
   flex-wrap: wrap;
@@ -52,8 +59,20 @@
   margin: 0;
 }
 
+.feedback p + p {
+  margin-top: 6px;
+}
+
 .error {
   color: var(--dsw-alias-state-error-primary);
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 16px;
+  margin-top: 12px;
 }
 
 .link {
@@ -61,7 +80,6 @@
   align-items: center;
   gap: 6px;
   min-height: 40px;
-  margin-top: 4px;
   color: var(--dsw-alias-brand-text);
   font-weight: 600;
   text-decoration: underline;

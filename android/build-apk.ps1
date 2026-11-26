@@ -58,7 +58,13 @@ try {
         $manifest.DocumentElement.SetAttribute('package', "$manifestPackage.qa")
         [void]$manifest.manifest.application.SetAttribute('debuggable', $android, 'true')
         [void]$manifest.manifest.application.SetAttribute('label', $android, 'DS 对话 QA')
-        [void]$manifest.manifest.application.provider.SetAttribute('authorities', $android, "$manifestPackage.qa.captured-photo")
+        foreach ($provider in $manifest.SelectNodes('/manifest/application/provider')) {
+            $authority = $provider.GetAttribute('authorities', $android)
+            if ($authority.StartsWith("$manifestPackage.")) {
+                $suffix = $authority.Substring($manifestPackage.Length)
+                [void]$provider.SetAttribute('authorities', $android, "$manifestPackage.qa$suffix")
+            }
+        }
     }
     $manifestPath = Join-Path $stage 'AndroidManifest.xml'
     $manifest.Save($manifestPath)

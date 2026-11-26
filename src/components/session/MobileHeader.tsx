@@ -1,4 +1,5 @@
-import { IconMenuOutline20, IconNewChatOutline20 } from '../base/icons.js'
+import type { MouseEventHandler } from 'react'
+import { IconChevronDownOutline14, IconMenuOutline20, IconNewChatOutline20 } from '../base/icons.js'
 import { useTranslate } from '../../i18n/index.js'
 import { newChat } from '../../services/chat/store.js'
 import { IconButton } from '../base/IconButton.js'
@@ -7,7 +8,13 @@ import { ModelSelect } from '../settings/ConversationSettings.js'
 import styles from './MobileHeader.module.css'
 
 /** 移动端顶栏：左侧菜单打开侧边栏；会话页再显示标题与开启新对话 */
-export const MobileHeader = ({ title }: { title?: string }) => {
+export const MobileHeader = ({
+  title,
+  onOpenOutline,
+}: {
+  title?: string
+  onOpenOutline?: MouseEventHandler<HTMLButtonElement>
+}) => {
   const t = useTranslate()
   return (
     <header className={styles.header}>
@@ -19,7 +26,20 @@ export const MobileHeader = ({ title }: { title?: string }) => {
         aria-label={t('expandSiderbarButton')}
         onClick={openMobileSider}
       />
-      <div className={styles.title}>{title ?? t('appName')}</div>
+      {onOpenOutline ? (
+        <button
+          type="button"
+          className={`${styles.title} ${styles.titleButton}`}
+          aria-label={t('chatOutline')}
+          aria-haspopup="dialog"
+          onClick={onOpenOutline}
+        >
+          <span>{title}</span>
+          <IconChevronDownOutline14 />
+        </button>
+      ) : (
+        <div className={styles.title}>{title ?? t('appName')}</div>
+      )}
       <div className={styles.models}>
         <ModelSelect />
       </div>
