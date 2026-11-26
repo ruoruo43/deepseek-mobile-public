@@ -16,6 +16,8 @@ Android 客户端默认显示简体中文。需要切换时，打开「设置 �
 
 在连接页点「检查更新」，或在「设置 → GitHub 更新」里查询公开仓库 `ruoruo43/deepseek-mobile-public` 的最新正式发布。检查更新无需登录 GitHub 或填写 GitHub 令牌。[GitHub 最新发布接口](https://docs.github.com/en/rest/releases/releases#get-the-latest-release)
 
+如果 GitHub API 限流，应用读取同一仓库的最新公开发行链接，核对其指向的正式版本标签。[GitHub 最新发行链接](https://docs.github.com/en/repositories/releasing-projects-on-github/linking-to-releases)
+
 有新版本时，点「前往 GitHub 下载」在浏览器中打开对应版本的公开发布页，然后下载签名 APK。覆盖升级需要使用相同包名、相同签名和更高的版本号。
 
 ## 数据与连接

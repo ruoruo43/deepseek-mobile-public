@@ -497,6 +497,27 @@ try {
       'PASS: invalid key rejected, valid key opens chat without plaintext WebView storage'
     )
     assert.equal(await visibleText('今天想聊点什么？'), false)
+    assert(
+      await evaluate(async () => {
+        await document.fonts.ready
+        const labels = ['深度思考', '智能搜索', '添加附件', '语音输入']
+        const boxes = labels.map((label) =>
+          document.querySelector('button[aria-label="' + label + '"]')?.getBoundingClientRect()
+        )
+        return (
+          !document.querySelector('button[aria-label="发送"]') &&
+          boxes.every(
+            (box, index) =>
+              box &&
+              box.width >= 43.5 &&
+              box.height >= 43.5 &&
+              Math.abs(box.top - boxes[0].top) < 2 &&
+              (index === 0 || box.left >= boxes[index - 1].right)
+          )
+        )
+      }),
+      'the empty composer groups four full touch targets on a single non-overlapping row'
+    )
     await snapshot('首页')
     assert(await clickLabel('^添加附件$'))
     for (const action of ['拍照', '相册', '文件']) {
@@ -512,6 +533,7 @@ try {
       await evaluate(() => /Summarize|总结|提炼/.test(document.querySelector('textarea').value))
     )
     assert(await evaluate(() => document.activeElement === document.querySelector('textarea')))
+    assert(await find('button[aria-label="发送"]'))
     assert(!stubRequests.some(({ payload }) => payload))
     console.log('PASS: welcome prompt shortcut fills the draft without sending')
 

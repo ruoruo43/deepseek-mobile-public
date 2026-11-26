@@ -356,7 +356,8 @@
 }
 
 :global([data-ds-android]) .toggle {
-  min-height: 38px;
+  min-width: 44px;
+  min-height: 44px;
   padding-inline: 8px;
   border-radius: 10px;
   border-color: var(--ds-app-line);
@@ -377,13 +378,23 @@
   gap: 6px;
 }
 
-@media (max-width: 400px) {
-  :global([data-ds-android]) .functionRow {
+:global([data-ds-android]) .right button {
+  min-width: 44px;
+  min-height: 44px;
+}
+
+:global([data-ds-android]) .functionRow:not(.withSend) .right > :last-child > button {
+  border-radius: 14px;
+  background: var(--ds-app-accent-soft);
+}
+
+@media (max-width: 300px) {
+  :global([data-ds-android]) .withSend {
     flex-wrap: wrap;
-    row-gap: 8px;
+    row-gap: 6px;
   }
 
-  :global([data-ds-android]) .toggles {
+  :global([data-ds-android]) .withSend .toggles {
     flex-basis: 100%;
   }
 }

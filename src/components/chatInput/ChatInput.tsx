@@ -8,6 +8,7 @@ import {
 } from '../base/icons.js'
 import { canAttachImages, setSearch, setThinking, useSettings } from '../../services/settings.js'
 import { useIsMobile } from '../../app/viewport.js'
+import { androidApp } from '../../services/android.js'
 import { sendMessage, stopReply, useChatStore } from '../../services/chat/store.js'
 import {
   addDraftFiles,
@@ -53,6 +54,7 @@ const Input = ({ sessionId }: { sessionId: string | null }) => {
   const isMobile = useIsMobile()
   const search = useSettings((state) => state.search)
   const flash = useSettings((state) => state.model === 'deepseek-flash')
+  const fontSize = useSettings((state) => state.fontSize)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
   const togglesRef = useRef<HTMLDivElement>(null)
 
@@ -70,8 +72,12 @@ const Input = ({ sessionId }: { sessionId: string | null }) => {
     updateLabels()
     const observer = new ResizeObserver(updateLabels)
     observer.observe(toggles)
-    return () => observer.disconnect()
-  }, [t])
+    document.fonts.addEventListener('loadingdone', updateLabels)
+    return () => {
+      observer.disconnect()
+      document.fonts.removeEventListener('loadingdone', updateLabels)
+    }
+  }, [t, fontSize])
 
   const acceptFiles = (files: File[]) => {
     if (files.length === 0 || useChatStore.getState().importingHistory || !ensureApiKey()) {
@@ -139,6 +145,8 @@ const Input = ({ sessionId }: { sessionId: string | null }) => {
 
   // 排队、上传中或上传失败的附件都留在输入框，全部上传成功后才能发送
   const canSend = !importingHistory && !streaming && voice.status === 'idle' && draftReady
+  const showSend = !androidApp || streaming || text.trim().length > 0 || attachments.length > 0
+  const attachmentPicker = <AttachmentPicker disabled={importingHistory} onFiles={acceptFiles} />
 
   const send = () => {
     if (
@@ -207,7 +215,7 @@ const Input = ({ sessionId }: { sessionId: string | null }) => {
           {`${text}\n`}
         </div>
       </div>
-      <div className={styles.functionRow}>
+      <div className={clsx(styles.functionRow, showSend && styles.withSend)}>
         {/* 深度思考 / 智能搜索开关，tooltip 在按钮上方 */}
         <div ref={togglesRef} className={styles.toggles}>
           <Tooltip content={t('deactivatedThinkTooltip')}>
@@ -237,6 +245,7 @@ const Input = ({ sessionId }: { sessionId: string | null }) => {
           </Tooltip>
         </div>
         <div className={styles.right}>
+          {androidApp ? attachmentPicker : null}
           <VoiceButton
             status={voice.status}
             disabled={!voice.available}
@@ -250,7 +259,7 @@ const Input = ({ sessionId }: { sessionId: string | null }) => {
               }
             }}
           />
-          <AttachmentPicker disabled={importingHistory} onFiles={acceptFiles} />
+          {androidApp ? null : attachmentPicker}
           {streaming && sessionId ? (
             <button
               type="button"
@@ -263,7 +272,7 @@ const Input = ({ sessionId }: { sessionId: string | null }) => {
             >
               <IconStopFill16 />
             </button>
-          ) : (
+          ) : showSend ? (
             <button
               type="button"
               className={clsx(styles.sendButton, !canSend && styles.disabled)}
@@ -273,7 +282,7 @@ const Input = ({ sessionId }: { sessionId: string | null }) => {
             >
               <IconSendOutline16 />
             </button>
-          )}
+          ) : null}
         </div>
       </div>
       {dragging ? <DragMask /> : null}
