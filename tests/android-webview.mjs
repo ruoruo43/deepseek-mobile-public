@@ -533,6 +533,33 @@ try {
       await evaluate(() => /Summarize|总结|提炼/.test(document.querySelector('textarea').value))
     )
     assert(await evaluate(() => document.activeElement === document.querySelector('textarea')))
+    await send('DOM.enable')
+    await send('CSS.enable')
+    const { root } = await send('DOM.getDocument')
+    const { nodeId } = await send('DOM.querySelector', {
+      nodeId: root.nodeId,
+      selector: 'textarea',
+    })
+    await send('CSS.forcePseudoState', { nodeId, forcedPseudoClasses: ['focus-visible'] })
+    const composerFocus = await evaluate(() => {
+      const textarea = document.querySelector('textarea')
+      const composer = textarea.parentElement.parentElement
+      const composerStyle = getComputedStyle(composer)
+      const accent = document.createElement('span').style
+      accent.color = composerStyle.getPropertyValue('--ds-app-accent').trim()
+      return {
+        textareaOutline: getComputedStyle(textarea).outlineStyle,
+        composerBorder: composerStyle.borderTopColor,
+        accentColor: accent.color,
+      }
+    })
+    await send('CSS.forcePseudoState', { nodeId, forcedPseudoClasses: [] })
+    assert.equal(composerFocus.textareaOutline, 'none', 'the textarea has no inner focus outline')
+    assert.equal(
+      composerFocus.composerBorder,
+      composerFocus.accentColor,
+      'the composer keeps its accent border while the textarea is focused'
+    )
     assert(await find('button[aria-label="发送"]'))
     assert(!stubRequests.some(({ payload }) => payload))
     console.log('PASS: welcome prompt shortcut fills the draft without sending')

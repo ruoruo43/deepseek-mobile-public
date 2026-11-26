@@ -342,6 +342,10 @@
   color: var(--dsw-alias-label-tertiary);
 }
 
+:global([data-ds-android]) .textarea:focus-visible {
+  outline: none;
+}
+
 :global([data-ds-android]) .wrapper:focus-within {
   border-color: var(--dsw-alias-brand-primary);
 }
