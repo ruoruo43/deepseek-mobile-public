@@ -1,0 +1,14 @@
+.brand {
+  display: inline-block;
+  width: 72px;
+  height: 72px;
+  flex: 0 0 auto;
+  border-radius: 25px;
+  background: var(--ds-app-tint, #e7eefb) url('../../assets/ds-dolphin.png') center / 94% no-repeat;
+}
+
+.compact {
+  width: 36px;
+  height: 36px;
+  border-radius: 12px;
+}

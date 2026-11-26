@@ -1,0 +1,131 @@
+.page {
+  display: grid;
+  box-sizing: border-box;
+  place-items: center;
+  height: 100dvh;
+  padding: 22px var(--ds-app-gutter);
+  overflow: auto;
+  color: var(--dsw-alias-label-primary);
+  background:
+    radial-gradient(ellipse at 10% 0%, var(--ds-app-tint) 0, transparent 65%),
+    var(--ds-app-canvas);
+}
+
+.card {
+  box-sizing: border-box;
+  display: grid;
+  width: min(100%, 420px);
+  overflow: hidden;
+  background: var(--ds-app-panel);
+  border: 1px solid var(--ds-app-line);
+  border-radius: 28px;
+  box-shadow: var(--ds-app-shadow);
+}
+
+.identity {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: clamp(18px, 6vw, 29px);
+  background: var(--ds-app-hero);
+  color: var(--ds-app-hero-text);
+}
+
+.identity .mark {
+  width: 58px;
+  height: 58px;
+  border-radius: 18px;
+  background-color: var(--ds-app-hero-mark);
+}
+
+.identity h1 {
+  margin: 0 0 5px;
+  font-size: clamp(23px, 6.8vw, 32px);
+  font-weight: 720;
+  line-height: 1.12;
+  letter-spacing: -0.025em;
+}
+
+.description {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.55;
+  color: #e1edff;
+}
+
+.fields {
+  display: grid;
+  gap: 11px;
+  padding: clamp(17px, 5.5vw, 27px);
+}
+
+.card label {
+  font-size: 14px;
+  font-weight: 630;
+}
+
+.card input {
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 53px;
+  padding: 12px 14px;
+  font: inherit;
+  color: inherit;
+  background: var(--dsw-specific-login-input);
+  border: 1px solid var(--dsw-alias-border-l2);
+  border-radius: 14px;
+}
+
+.card input::placeholder { color: var(--dsw-alias-label-tertiary); }
+.fields button { min-height: 49px; }
+.error { margin: 0; color: var(--dsw-alias-state-error-primary); font-size: 14px; }
+
+.note {
+  margin: 2px 0 0;
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--dsw-alias-label-secondary);
+}
+
+.note a {
+  color: var(--dsw-alias-brand-text);
+  text-underline-offset: 3px;
+  white-space: nowrap;
+}
+
+.footer {
+  display: flex;
+  justify-content: flex-end;
+  padding: 4px 11px;
+  border-top: 1px solid var(--ds-app-line);
+  background: var(--ds-app-canvas);
+}
+
+.footer button {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  min-height: 44px;
+  padding-inline: 10px;
+  border: 0;
+  border-radius: 12px;
+  background: transparent;
+  color: var(--dsw-alias-brand-text);
+  font: inherit;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.footer button:active {
+  background: var(--ds-app-accent-soft);
+}
+
+.updateDialog {
+  width: 440px;
+}
+
+@media (max-height: 430px) {
+  .page { place-items: start center; padding: 14px; }
+  .identity { gap: 9px; padding: 12px 14px; }
+  .identity .mark { width: 40px; height: 40px; border-radius: 11px; }
+}

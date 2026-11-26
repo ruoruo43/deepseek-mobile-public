@@ -1,0 +1,64 @@
+.trigger {
+  width: 40px;
+  height: 42px;
+  border-radius: 12px;
+}
+
+.sheet {
+  align-self: flex-end;
+  width: 468px;
+  max-width: calc(100% - 20px);
+  margin: 0 10px calc(10px + env(safe-area-inset-bottom));
+  padding: 18px clamp(14px, 4.6vw, 22px) 20px;
+  border: 1px solid var(--ds-app-line);
+  border-radius: 24px;
+  box-shadow: var(--ds-app-shadow);
+}
+
+.actions {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.actions button {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  min-height: 84px;
+  padding: 4px 2px;
+  border: 1px solid transparent;
+  border-radius: 16px;
+  background: var(--dsw-specific-login-input);
+  color: var(--dsw-alias-label-primary);
+  font: inherit;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.actions svg {
+  box-sizing: content-box;
+  width: 19px;
+  height: 19px;
+  padding: 7px;
+  border-radius: 11px;
+  color: var(--dsw-alias-brand-text);
+}
+
+.actions button:active:not(:disabled) {
+  background: var(--ds-app-accent-soft);
+}
+
+.actions button:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
+.hint {
+  margin: 10px 0 0;
+  font-size: 12px;
+  line-height: 18px;
+  color: var(--dsw-alias-label-secondary);
+}

@@ -1,0 +1,156 @@
+.container {
+  position: absolute;
+  inset: 0;
+  display: flex;
+}
+
+.welcome {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  width: 100%;
+  max-width: var(--message-list-max-width);
+  margin: auto;
+  padding: 0 32px 64px;
+}
+
+.greeting {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 21px;
+  font-size: 24px;
+  line-height: 32px;
+  font-weight: 600;
+  text-align: center;
+  color: var(--dsw-alias-label-primary);
+}
+
+.androidWelcome {
+  min-height: 0;
+  margin-block: 0;
+}
+
+.promptArea {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 0;
+  overflow: auto;
+  padding: 6px 2px 12px;
+}
+
+.promptMenu {
+  align-self: flex-start;
+  max-width: 100%;
+  margin-top: auto;
+  padding: 0 12px;
+  border: 1px solid transparent;
+  border-radius: 14px;
+}
+
+.promptMenu[open] {
+  align-self: stretch;
+  border-color: var(--ds-app-line);
+  background: var(--ds-app-panel);
+}
+
+.promptMenu summary {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  min-height: 44px;
+  list-style: none;
+  color: var(--dsw-alias-label-secondary);
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 21px;
+  cursor: pointer;
+}
+
+.promptMenu summary::-webkit-details-marker {
+  display: none;
+}
+
+.promptMenu[open] summary svg {
+  transform: rotate(180deg);
+}
+
+.shortcuts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding-bottom: 12px;
+}
+
+.shortcuts button {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  min-height: 44px;
+  padding: 0 10px;
+  border: 0;
+  border-radius: 10px;
+  color: var(--dsw-alias-label-primary);
+  background: var(--ds-app-accent-soft);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 570;
+  cursor: pointer;
+}
+
+.shortcuts button:active {
+  background: var(--ds-app-tint);
+}
+
+.shortcuts button span {
+  display: inline-flex;
+  color: var(--dsw-alias-brand-text);
+}
+
+@media (max-width: 439px) {
+  .greeting {
+    font-size: 20px;
+    line-height: 28px;
+    font-weight: 500;
+  }
+}
+
+@media not all and (min-width: 768px) {
+  .container {
+    flex-direction: column;
+  }
+
+  .welcome {
+    flex: 1;
+    min-height: 0;
+    justify-content: flex-end;
+    max-width: none;
+    margin: 0;
+    padding: 0 16px env(safe-area-inset-bottom);
+  }
+
+  .androidWelcome {
+    padding-inline: var(--ds-app-gutter);
+  }
+
+  .greeting {
+    flex-shrink: 0;
+    margin: auto 0;
+  }
+
+  .caveat {
+    flex-shrink: 0;
+    width: 100%;
+    padding: 6px 0;
+    font-size: 11px;
+    line-height: 16px;
+    text-align: center;
+    color: var(--dsw-alias-label-tertiary);
+    user-select: none;
+  }
+}

@@ -1,0 +1,69 @@
+.header {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+  box-sizing: border-box;
+  height: 60px;
+  padding: 12px 10px 4px;
+}
+
+.title {
+  flex: 1;
+  min-width: 0;
+  margin: 0 12px;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  font: var(--dsw-font-s-strong-14);
+  color: var(--dsw-alias-label-primary);
+}
+
+.models {
+  display: flex;
+  align-items: center;
+}
+
+:global([data-ds-android]) .header {
+  height: 66px;
+  gap: clamp(8px, 2.8vw, 12px);
+  padding: 6px var(--ds-app-gutter);
+  border-bottom: 1px solid var(--ds-app-line);
+  background: var(--ds-app-panel);
+}
+
+:global([data-ds-android]) .title {
+  margin: 0;
+  font: inherit;
+  font-size: 16px;
+  font-weight: 660;
+  line-height: 1.3;
+}
+
+:global([data-ds-android]) .models > button {
+  min-height: 44px;
+  min-width: 65px;
+  padding-inline: 11px 35px;
+  border: 1px solid var(--ds-app-line);
+  border-radius: 12px;
+  background-color: var(--ds-app-tint);
+  color: var(--dsw-alias-brand-text);
+}
+
+:global([data-ds-android]) .chromeButton {
+  border-radius: 14px;
+  background: transparent;
+}
+
+:global([data-ds-android]) .chromeButton:active {
+  background: var(--ds-app-tint);
+}
+
+@media (max-width: 330px) {
+  :global([data-ds-android]) .header {
+    gap: 6px;
+  }
+
+  :global([data-ds-android]) .title {
+    font-size: 14px;
+  }
+}

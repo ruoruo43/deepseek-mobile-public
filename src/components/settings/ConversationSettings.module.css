@@ -1,0 +1,22 @@
+.instructions {
+  display: grid;
+  gap: 9px;
+  padding: 12px 8px;
+}
+
+.instructions label { font-weight: 600; }
+.instructions p { margin: 0; font-size: 13px; line-height: 1.5; }
+.instructions button { justify-self: end; }
+
+.instructions textarea {
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 80px;
+  padding: 10px;
+  resize: vertical;
+  color: inherit;
+  font: inherit;
+  background: var(--dsw-alias-bg-layer-2);
+  border: 1px solid var(--dsw-alias-border-base, #a7b0c2);
+  border-radius: 12px;
+}

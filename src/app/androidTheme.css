@@ -1,0 +1,151 @@
+@font-face {
+  font-family: 'DS Kai';
+  src: url('../assets/fonts/LXGWWenKaiLite-Regular.ttf') format('truetype');
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  unicode-range:
+    U+2E80-303F, U+3100-312F, U+31A0-31BF, U+31C0-31EF, U+3400-4DBF, U+4E00-9FFF, U+F900-FAFF,
+    U+FE10-FE1F, U+FE30-FE4F, U+FF00-FFEF, U+20000-323AF;
+}
+
+@font-face {
+  font-family: 'DS Latin';
+  src:
+    local('Times New Roman'),
+    local('TimesNewRomanPSMT'),
+    url('../assets/fonts/Tinos-Regular.ttf') format('truetype');
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  unicode-range: U+0000-024F, U+0300-03FF, U+1E00-1EFF, U+2000-214F, U+2190-22FF;
+}
+
+@font-face {
+  font-family: 'DS Latin';
+  src:
+    local('Times New Roman Bold'),
+    local('TimesNewRomanPS-BoldMT'),
+    url('../assets/fonts/Tinos-Bold.ttf') format('truetype');
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  unicode-range: U+0000-024F, U+0300-03FF, U+1E00-1EFF, U+2000-214F, U+2190-22FF;
+}
+
+@font-face {
+  font-family: 'DS Latin';
+  src:
+    local('Times New Roman Italic'),
+    local('TimesNewRomanPS-ItalicMT'),
+    url('../assets/fonts/Tinos-Italic.ttf') format('truetype');
+  font-style: italic;
+  font-weight: 400;
+  font-display: swap;
+  unicode-range: U+0000-024F, U+0300-03FF, U+1E00-1EFF, U+2000-214F, U+2190-22FF;
+}
+
+@font-face {
+  font-family: 'DS Latin';
+  src:
+    local('Times New Roman Bold Italic'),
+    local('TimesNewRomanPS-BoldItalicMT'),
+    url('../assets/fonts/Tinos-BoldItalic.ttf') format('truetype');
+  font-style: italic;
+  font-weight: 700;
+  font-display: swap;
+  unicode-range: U+0000-024F, U+0300-03FF, U+1E00-1EFF, U+2000-214F, U+2190-22FF;
+}
+
+:root[data-ds-android] {
+  --ds-app-latin-font: 'DS Local Latin', 'DS Latin';
+  --dsw-font-family: var(--ds-app-latin-font), 'DS Kai', KaiTi, STKaiti, serif;
+}
+
+[data-ds-android] body {
+  --ds-app-canvas: #f7faff;
+  --ds-app-panel: #fff;
+  --ds-app-line: #dbe6f4;
+  --ds-app-accent: #2659d2;
+  --ds-app-accent-soft: #e9f0ff;
+  --ds-app-tint: #e3edfb;
+  --ds-app-hero: linear-gradient(130deg, #18356c 0%, #1e4f9a 70%, #2863ad 100%);
+  --ds-app-hero-text: #f5f9ff;
+  --ds-app-hero-mark: #dceaff;
+  --ds-app-gutter: clamp(12px, 4.8vw, 24px);
+  --ds-app-shadow: 0 8px 26px rgb(23 60 110 / 9%);
+  --dsw-alias-bg-base: var(--ds-app-canvas);
+  --dsw-alias-bg-layer-2: var(--ds-app-panel);
+  --dsw-alias-bg-layer-3: var(--ds-app-panel);
+  --dsw-alias-border-l1: var(--ds-app-line);
+  --dsw-alias-border-l2-darkmode-thin: var(--ds-app-line);
+  --dsw-alias-border-l2: #c9d9ee;
+  --dsw-alias-border-l3: #b6cce8;
+  --dsw-alias-brand-primary: var(--ds-app-accent);
+  --dsw-alias-brand-text: #234eae;
+  --dsw-alias-brand-primary-invert: #244ba7;
+  --dsw-alias-button-primary-hover: #1945b3;
+  --dsw-alias-button-ghost-active-fill: var(--ds-app-accent-soft);
+  --dsw-alias-button-ghost-active-border: #bfd1f6;
+  --dsw-alias-label-primary: #142746;
+  --dsw-alias-label-secondary: #3d5575;
+  --dsw-alias-label-tertiary: #526986;
+  --dsw-specific-bubble: #dfeaff;
+  --dsw-specific-input-major: var(--ds-app-panel);
+  --dsw-specific-login-input: #f2f6fc;
+  --dsw-specific-selector: var(--ds-app-tint);
+  --dsw-specific-sidebar-fill: var(--ds-app-panel);
+  --dsw-specific-sidebar-nav-item-active-accent: var(--ds-app-accent-soft);
+  --dsw-specific-sidebar-nav-item-hover: #f3f6fc;
+}
+
+[data-ds-android] body[data-ds-dark-theme] {
+  --ds-app-canvas: #101928;
+  --ds-app-panel: #1a273d;
+  --ds-app-line: #344965;
+  --ds-app-accent: #80a5ff;
+  --ds-app-accent-soft: #243c6b;
+  --ds-app-tint: #213553;
+  --ds-app-hero: linear-gradient(130deg, #1b2f53 0%, #203f78 70%, #29598e 100%);
+  --ds-app-hero-mark: #c5def8;
+  --ds-app-shadow: 0 8px 26px rgb(0 0 0 / 18%);
+  --dsw-alias-border-l2: #475a78;
+  --dsw-alias-border-l3: #596e8e;
+  --dsw-alias-brand-text: #a9bfff;
+  --dsw-alias-brand-primary-invert: #dce6ff;
+  --dsw-alias-button-primary-fill: #3f65cc;
+  --dsw-alias-button-primary-hover: #385cb9;
+  --dsw-alias-button-ghost-active-border: #4965a9;
+  --dsw-alias-label-primary: #e6edfb;
+  --dsw-alias-label-secondary: #becbe0;
+  --dsw-alias-label-tertiary: #a3b4ce;
+  --dsw-specific-bubble: #283e67;
+  --dsw-specific-login-input: #152035;
+  --dsw-specific-sidebar-nav-item-hover: #25344e;
+  color-scheme: dark;
+}
+
+[data-ds-android] :focus-visible {
+  outline: 2px solid var(--ds-app-accent);
+  outline-offset: 2px;
+}
+
+[data-ds-android] .katex .katex-html .mathnormal {
+  font-family: var(--ds-app-latin-font), KaTeX_Math, serif;
+}
+
+[data-ds-android]
+  .katex
+  .katex-html
+  :is(.mathrm, .mathit, .mainrm, .mathbf, .mbin, .mrel, .mpunct, [class='mord']) {
+  font-family: var(--ds-app-latin-font), KaTeX_Main, serif;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [data-ds-android] *,
+  [data-ds-android] *::before,
+  [data-ds-android] *::after {
+    animation-duration: 0.001ms !important;
+    transition-duration: 0.001ms !important;
+  }
+}

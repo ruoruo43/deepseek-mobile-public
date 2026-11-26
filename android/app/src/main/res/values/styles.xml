@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <color name="dolphin_icon_background">#E5EEF9</color>
+  <style name="AppTheme" parent="android:style/Theme.Material.Light.NoActionBar">
+    <item name="android:windowLightStatusBar">true</item>
+    <item name="android:windowLightNavigationBar">true</item>
+    <item name="android:statusBarColor">#F9FBFE</item>
+    <item name="android:navigationBarColor">#F9FBFE</item>
+    <item name="android:windowBackground">#F9FBFE</item>
+    <item name="android:windowOptOutEdgeToEdgeEnforcement">true</item>
+  </style>
+</resources>
