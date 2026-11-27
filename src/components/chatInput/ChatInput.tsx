@@ -1,6 +1,7 @@
 import clsx from 'clsx'
 import { memo, useCallback, useEffect, useLayoutEffect, useRef } from 'react'
 import {
+  IconCloseOutline16,
   IconGlobeLanguageOutline14,
   IconSendOutline16,
   IconStopFill16,
@@ -17,10 +18,12 @@ import {
   prepareDraftMessage,
   removeDraftAttachment,
   retryDraftAttachment,
+  setDraftQuote,
   setDraftText,
   useDrafts,
 } from '../../services/chat/drafts.js'
 import { stopReadAloud } from '../../services/speech/readAloud.js'
+import { IconButton } from '../base/IconButton.js'
 import { Tooltip } from '../base/Tooltip.js'
 import { ensureApiKey } from '../settings/settingsDialogState.js'
 import { DragMask, useFileDrop } from './DragMask.js'
@@ -43,7 +46,7 @@ export const ChatInput = memo(function ChatInput({ sessionId }: { sessionId: str
 const Input = ({ sessionId }: { sessionId: string | null }) => {
   const t = useTranslate()
   const draft = useDrafts((state) => state.drafts.get(sessionId) ?? EMPTY_DRAFT)
-  const { text, attachments } = draft
+  const { text, attachments, quote } = draft
   const setText = (value: string) => setDraftText(sessionId, value)
   const draftReady = useUploads((state) => prepareDraftMessage(draft, state.tasks) !== null)
   const streaming = useChatStore(
@@ -156,7 +159,16 @@ const Input = ({ sessionId }: { sessionId: string | null }) => {
   // 排队、上传中或上传失败的附件都留在输入框，全部上传成功后才能发送
   const canSend = !importingHistory && !streaming && voice.status === 'idle' && draftReady
   const showSend = !androidApp || streaming || text.trim().length > 0 || attachments.length > 0
-  const attachmentPicker = <AttachmentPicker disabled={importingHistory} onFiles={acceptFiles} />
+  const attachmentPicker = (
+    <AttachmentPicker
+      disabled={importingHistory}
+      onFiles={acceptFiles}
+      onInsertText={(recognized) => {
+        const previous = getDraft(sessionId).text
+        setText(previous ? previous + '\n\n' + recognized : recognized)
+      }}
+    />
+  )
 
   const send = () => {
     if (
@@ -187,12 +199,24 @@ const Input = ({ sessionId }: { sessionId: string | null }) => {
         }
       }}
     >
+      {quote ? (
+        <div className={styles.quotePreview} role="group" aria-label={t('quotedReply')}>
+          <span className={styles.quoteLabel}>{t('quotedReply')}</span>
+          <span className={styles.quoteText}>{quote}</span>
+          <IconButton
+            size="xl"
+            tooltip={t('removeQuotedReply')}
+            icon={<IconCloseOutline16 />}
+            onClick={() => setDraftQuote(sessionId, null)}
+          />
+        </div>
+      ) : null}
       <DraftAttachments items={attachments} onRetry={retryFile} onRemove={removeFile} />
       <div className={styles.textareaWrapper}>
         <textarea
           ref={textareaRef}
           className={clsx(styles.textarea, recording && isMobile && styles.textareaHidden)}
-          placeholder={t('chatInputPlaceholderChat')}
+          placeholder={t(quote ? 'quoteFollowUpPlaceholder' : 'chatInputPlaceholderChat')}
           rows={2}
           // 移动端不自动聚焦，避免一打开就弹出键盘
           autoFocus={!isMobile}

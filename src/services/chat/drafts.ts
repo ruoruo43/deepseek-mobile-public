@@ -18,9 +18,10 @@ export type DraftAttachment = {
   isImage: boolean
 }
 
-type Draft = { text: string; attachments: DraftAttachment[] }
+type Draft = { text: string; attachments: DraftAttachment[]; quote: string | null }
 
-export const EMPTY_DRAFT: Draft = { text: '', attachments: [] }
+export const EMPTY_DRAFT: Draft = { text: '', attachments: [], quote: null }
+const QUOTE_CHARACTER_LIMIT = 400
 
 /** 草稿只保存在本次页面的内存中，独立于会话详情缓存；null 是新对话的草稿。 */
 export const useDrafts = create<{ drafts: Map<string | null, Draft> }>(() => ({
@@ -34,7 +35,7 @@ const updateDraft = (sessionId: string | null, update: (draft: Draft) => Draft) 
   useDrafts.setState((state) => {
     const draft = update(state.drafts.get(sessionId) ?? EMPTY_DRAFT)
     const drafts = new Map(state.drafts)
-    if (draft.text || draft.attachments.length > 0) {
+    if (draft.text || draft.attachments.length > 0 || draft.quote) {
       drafts.set(sessionId, draft)
     } else {
       drafts.delete(sessionId)
@@ -44,6 +45,15 @@ const updateDraft = (sessionId: string | null, update: (draft: Draft) => Draft) 
 
 export const setDraftText = (sessionId: string | null, text: string) =>
   updateDraft(sessionId, (draft) => ({ ...draft, text }))
+
+export const setDraftQuote = (sessionId: string | null, text: string | null) => {
+  const characters = Array.from(text?.replace(/\r\n?/g, '\n').trim() ?? '')
+  const quote =
+    characters.length > QUOTE_CHARACTER_LIMIT
+      ? characters.slice(0, QUOTE_CHARACTER_LIMIT).join('').trimEnd() + '…'
+      : characters.join('')
+  updateDraft(sessionId, (draft) => ({ ...draft, quote: quote || null }))
+}
 
 const upload = (attachment: DraftAttachment, apiKey: string) => {
   // 上传任务负责记录错误，输入框的附件卡片展示失败及重试入口。
@@ -114,7 +124,11 @@ export const prepareDraftMessage = (draft: Draft, tasks: Record<string, UploadTa
       blob: attachment.file,
     })
   }
-  return { text, files }
+  const quote = draft.quote
+    ?.split('\n')
+    .map((line) => '> ' + line)
+    .join('\n')
+  return { text: quote ? [quote, text].filter(Boolean).join('\n\n') : text, files }
 }
 
 export const removeDraftAttachment = (sessionId: string | null, attachmentId: string) => {

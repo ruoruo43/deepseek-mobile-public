@@ -1,0 +1,16 @@
+On-device text recognition
+
+Tesseract4Android 4.9.0
+Copyright 2019 Adaptech s.r.o., Robert Pösel
+https://github.com/adaptech-cz/Tesseract4Android/tree/15c534717b1cb58261b58d4e4c1200c7f81f668c
+
+The native libraries include Tesseract, Leptonica, libjpeg and libpng.
+The accompanying files include their license and copyright notices.
+This software is based in part on the work of the Independent JPEG Group.
+
+Simplified Chinese and English language data from tesseract-ocr/tessdata_fast 4.1.0
+https://github.com/tesseract-ocr/tessdata_fast/tree/65727574dfcd264acbb0c3e07860e4e9e9b22185
+
+AndroidX Annotation 1.3.0 by the Android Open Source Project is licensed
+under the Apache License, Version 2.0. Its license text is included alongside
+the Apache-licensed OCR components.

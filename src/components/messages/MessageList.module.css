@@ -40,3 +40,28 @@
   max-width: calc(100% - 2 * var(--ds-app-gutter));
   padding-bottom: 16px;
 }
+
+.latestDock {
+  display: flex;
+  flex-shrink: 0;
+  justify-content: center;
+}
+
+.latestDock .latestButton {
+  min-height: 44px;
+  padding: 0;
+  border: 0;
+}
+
+.latestFace {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  min-height: 28px;
+  padding: 0 10px;
+  border: 1px solid var(--ds-app-line);
+  border-radius: 11px;
+  background: var(--ds-app-panel);
+  color: var(--dsw-alias-label-secondary);
+  font-size: 0.8125rem;
+}

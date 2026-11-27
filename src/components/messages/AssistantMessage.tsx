@@ -4,6 +4,7 @@ import { memo } from 'react'
 import { IconRefreshOutline16, IconWarningOutline16 } from '../base/icons.js'
 import { describeReply } from '../../services/chat/describe.js'
 import { androidApp } from '../../services/android.js'
+import { setDraftQuote } from '../../services/chat/drafts.js'
 import { canContinueReply } from '../../services/chat/reply.js'
 import { continueReply, regenerateReply } from '../../services/chat/store.js'
 import { stopReadAloud } from '../../services/speech/readAloud.js'
@@ -56,6 +57,7 @@ export const AssistantMessage = memo(function AssistantMessage({
     .filter(Boolean)
     .join('\n\n')
   const copyText = responseText || notice?.text
+  const quoteText = androidApp ? answer?.text.trim() : null
   const waiting = streaming && view.steps.length === 0 && !view.answer && !message.thinking
   const summaryEntry = `${message.id}-summary`
   const modelLabel = message.model
@@ -156,6 +158,16 @@ export const AssistantMessage = memo(function AssistantMessage({
             {copyText ? <CopyButton text={copyText} /> : null}
             {responseText && !refused ? (
               <ReadAloudButton messageId={message.id} text={responseText} />
+            ) : null}
+            {quoteText ? (
+              <button
+                type="button"
+                className={styles.quoteAction}
+                aria-label={t('quoteReply')}
+                onClick={() => setDraftQuote(sessionId, quoteText)}
+              >
+                {t('quoteReplyShort')}
+              </button>
             ) : null}
             <IconButton
               icon={<IconRefreshOutline16 />}

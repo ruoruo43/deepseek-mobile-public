@@ -5,9 +5,15 @@
 .title {
   display: flex;
   align-items: center;
-  height: 34px;
+  min-height: 34px;
   margin-bottom: 2px;
+  padding: 0 3px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
   color: var(--dsw-alias-label-secondary);
+  font: inherit;
+  text-align: start;
   cursor: pointer;
   user-select: none;
   transition: color 0.2s;
@@ -15,6 +21,15 @@
   &:hover {
     color: var(--dsw-alias-label-primary);
   }
+}
+
+:global([data-ds-android]) .title {
+  min-height: 44px;
+}
+
+.title > svg,
+.titleIcon {
+  flex-shrink: 0;
 }
 
 .titleIcon {

@@ -163,6 +163,36 @@
   background-color: var(--dsw-alias-state-error-primary);
 }
 
+.quotePreview {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  margin: 6px 8px 0;
+  padding: 0 2px 0 9px;
+  border: 1px solid var(--ds-app-line);
+  border-radius: 10px;
+  background: var(--ds-app-accent-soft);
+  font-size: 0.8125rem;
+  line-height: 1.35;
+}
+
+.quoteLabel {
+  flex-shrink: 0;
+  color: var(--dsw-alias-brand-text);
+  font-weight: 600;
+}
+
+.quoteText {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  color: var(--dsw-alias-label-secondary);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .textareaWrapper {
   position: relative;
   width: 100%;

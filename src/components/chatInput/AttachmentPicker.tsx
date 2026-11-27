@@ -4,10 +4,15 @@ import { androidApp } from '../../services/android.js'
 import { ACCEPT } from '../../services/attachments.js'
 import { canAttachImages, useSettings } from '../../services/settings.js'
 import { IconButton } from '../base/IconButton.js'
-import { IconChevronRightOutline14, IconPaperclipOutline16 } from '../base/icons.js'
+import {
+  IconBrowseOutline16,
+  IconChevronRightOutline14,
+  IconPaperclipOutline16,
+} from '../base/icons.js'
 import { Modal } from '../base/Modal.js'
 import { showToast } from '../base/toastState.js'
 import { ensureApiKey } from '../settings/settingsDialogState.js'
+import { ImageTextDialog } from './ImageTextDialog.js'
 import styles from './AttachmentPicker.module.css'
 
 function CameraIcon() {
@@ -52,12 +57,15 @@ function PhotosIcon() {
 export function AttachmentPicker({
   disabled,
   onFiles,
+  onInsertText,
 }: {
   disabled: boolean
   onFiles: (files: File[]) => void
+  onInsertText: (text: string) => void
 }) {
   const t = useTranslate()
   const [open, setOpen] = useState(false)
+  const [imageTextOpen, setImageTextOpen] = useState(false)
   const imagesAllowed = useSettings(canAttachImages)
   const trigger = useRef<HTMLButtonElement | null>(null)
   const files = useRef<HTMLInputElement>(null)
@@ -162,9 +170,25 @@ export function AttachmentPicker({
                   <span className={styles.actionLabel}>{t('chooseFiles')}</span>
                   <IconChevronRightOutline14 />
                 </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    close()
+                    setImageTextOpen(true)
+                  }}
+                >
+                  <span className={styles.actionIcon}>
+                    <IconBrowseOutline16 />
+                  </span>
+                  <span className={styles.actionLabel}>{t('imageTextTool')}</span>
+                  <IconChevronRightOutline14 />
+                </button>
               </div>
               {imagesAllowed ? null : <p className={styles.hint}>{t('photosRequireFlash')}</p>}
             </Modal>
+          ) : null}
+          {imageTextOpen ? (
+            <ImageTextDialog onClose={() => setImageTextOpen(false)} onInsert={onInsertText} />
           ) : null}
         </>
       ) : null}

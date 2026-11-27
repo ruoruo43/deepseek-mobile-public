@@ -8,6 +8,7 @@ type Method =
   | 'github.release.check'
   | 'github.release.download'
   | 'github.release.install'
+  | 'ocr.pick'
   | 'appearance.textZoom'
   | 'share.text'
   | 'export.pick'
@@ -73,14 +74,15 @@ function callAndroid(method: Method, value: string | null = null): Promise<unkno
       finish()
       reject(new Error('Android host request failed'))
     }
-    // The document picker can stay open as long as the person needs.
+    // Native pickers can stay open until the user selects a file or cancels.
     const timeout =
       method === 'github.release.download'
         ? 175_000
         : method === 'github.release.check'
           ? 22_000
           : 12_000
-    const timer = method === 'export.pick' && androidPort ? undefined : setTimeout(fail, timeout)
+    const waitsForPicker = method === 'export.pick' || method === 'ocr.pick'
+    const timer = waitsForPicker && androidPort ? undefined : setTimeout(fail, timeout)
     pending.set(id, {
       request,
       resolve(result) {
@@ -113,6 +115,30 @@ export const setAndroidTextZoom = (percent: number) =>
   callAndroid('appearance.textZoom', String(percent))
 
 export const shareAndroidText = (text: string) => callAndroid('share.text', text)
+
+type ImageTextResult =
+  | { status: 'recognized'; text: string }
+  | { status: 'cancelled' | 'empty' | 'unreadable' | 'busy' | 'failed' }
+
+export async function recognizeAndroidImage(): Promise<ImageTextResult> {
+  const result = await callAndroid('ocr.pick')
+  if (result && typeof result === 'object' && 'status' in result) {
+    switch (result.status) {
+      case 'recognized':
+        if ('text' in result && typeof result.text === 'string') {
+          return { status: 'recognized', text: result.text }
+        }
+        break
+      case 'cancelled':
+      case 'empty':
+      case 'unreadable':
+      case 'busy':
+      case 'failed':
+        return { status: result.status }
+    }
+  }
+  throw new Error('Invalid Android OCR result')
+}
 
 export async function saveAndroidFile(name: string, blob: Blob, type: string): Promise<void> {
   const filename =

@@ -7,8 +7,7 @@
   overflow: auto;
   color: var(--dsw-alias-label-primary);
   background:
-    radial-gradient(ellipse at 10% 0%, var(--ds-app-tint) 0, transparent 65%),
-    var(--ds-app-canvas);
+    radial-gradient(ellipse at 10% 0%, var(--ds-app-tint) 0, transparent 65%), var(--ds-app-canvas);
 }
 
 .card {
@@ -76,9 +75,17 @@
   border-radius: 14px;
 }
 
-.card input::placeholder { color: var(--dsw-alias-label-tertiary); }
-.fields button { min-height: 49px; }
-.error { margin: 0; color: var(--dsw-alias-state-error-primary); font-size: 14px; }
+.card input::placeholder {
+  color: var(--dsw-alias-label-tertiary);
+}
+.fields button {
+  min-height: 49px;
+}
+.error {
+  margin: 0;
+  color: var(--dsw-alias-state-error-primary);
+  font-size: 14px;
+}
 
 .note {
   margin: 2px 0 0;
@@ -95,7 +102,8 @@
 
 .footer {
   display: flex;
-  justify-content: flex-end;
+  flex-wrap: wrap;
+  justify-content: space-between;
   padding: 4px 11px;
   border-top: 1px solid var(--ds-app-line);
   background: var(--ds-app-canvas);
@@ -125,7 +133,17 @@
 }
 
 @media (max-height: 430px) {
-  .page { place-items: start center; padding: 14px; }
-  .identity { gap: 9px; padding: 12px 14px; }
-  .identity .mark { width: 40px; height: 40px; border-radius: 11px; }
+  .page {
+    place-items: start center;
+    padding: 14px;
+  }
+  .identity {
+    gap: 9px;
+    padding: 12px 14px;
+  }
+  .identity .mark {
+    width: 40px;
+    height: 40px;
+    border-radius: 11px;
+  }
 }

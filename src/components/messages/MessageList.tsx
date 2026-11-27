@@ -1,11 +1,15 @@
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { useIsMobile } from '../../app/viewport.js'
+import { useTranslate } from '../../i18n/index.js'
+import { androidApp } from '../../services/android.js'
 import { buildMessageVersions, type MessageVersions } from '../../services/chat/branches.js'
 import { selectMessageVersion } from '../../services/chat/store.js'
 import type { Session } from '../../services/chat/types.js'
+import { Button } from '../base/Button.js'
+import { IconChevronDownOutline14 } from '../base/icons.js'
 import { closeSearchPanel } from '../search/searchPanelState.js'
 import { AssistantMessage } from './AssistantMessage.js'
-import { ScrollToBottomContext } from './scrollContext.js'
+import { MessageScrollContext } from './scrollContext.js'
 import { UserMessage } from './UserMessage.js'
 import type { Message } from '../../services/chat/types.js'
 
@@ -27,6 +31,7 @@ import styles from './MessageList.module.css'
 
 /** 距底部小于该值时视为在底部，流式内容增长时跟随 */
 const STICKY_THRESHOLD = 40
+const SHOW_LATEST_THRESHOLD = 120
 const EMPTY_VERSIONS: MessageVersions = { ids: [], index: -1 }
 
 export const MessageList = ({
@@ -42,7 +47,10 @@ export const MessageList = ({
   footer: React.ReactNode
   jump: { messageId: string } | null
 }) => {
+  const t = useTranslate()
   const isMobile = useIsMobile()
+  const mobileLatest = androidApp && isMobile
+  const [showLatest, setShowLatest] = useState(false)
   const scrollRef = useRef<HTMLDivElement>(null)
   const contentRef = useRef<HTMLDivElement>(null)
   const stickyRef = useRef(true)
@@ -59,13 +67,29 @@ export const MessageList = ({
     setPreviousVersions(versions)
   }
   const lastMessageId = messages.at(-1)?.id
+  const updateLatestButton = useCallback(() => {
+    const el = scrollRef.current
+    if (mobileLatest && el) {
+      setShowLatest(el.scrollHeight - el.scrollTop - el.clientHeight > SHOW_LATEST_THRESHOLD)
+    }
+  }, [mobileLatest])
   const scrollToBottom = useCallback(() => {
     const el = scrollRef.current
     if (el && stickyRef.current) {
       el.scrollTop = el.scrollHeight
       scrollTopRef.current = el.scrollTop
     }
-  }, [])
+    updateLatestButton()
+  }, [updateLatestButton])
+  const scrollActions = useMemo(
+    () => ({
+      scrollToBottom,
+      pauseFollowing: () => {
+        stickyRef.current = false
+      },
+    }),
+    [scrollToBottom]
+  )
 
   // 内容、键盘和输入框高度变化时，继续遵循当前跟随状态。
   useLayoutEffect(() => {
@@ -92,11 +116,12 @@ export const MessageList = ({
         scroll.scrollTop += switcher.getBoundingClientRect().top - anchor.top
       }
       restoreScrollRef.current = null
+      updateLatestButton()
       return
     }
     stickyRef.current = true
     scrollToBottom()
-  }, [session.id, lastMessageId, scrollToBottom])
+  }, [session.id, lastMessageId, scrollToBottom, updateLatestButton])
 
   useEffect(closeSearchPanel, [session.id, lastMessageId])
 
@@ -115,7 +140,8 @@ export const MessageList = ({
     scroll.scrollTop +=
       question.getBoundingClientRect().top - scroll.getBoundingClientRect().top - 12
     scrollTopRef.current = scroll.scrollTop
-  }, [jump])
+    updateLatestButton()
+  }, [jump, updateLatestButton])
 
   const selectVersion = useCallback(
     (messageId: string, anchorTop: number) => {
@@ -150,15 +176,16 @@ export const MessageList = ({
         stickyRef.current = false
       }
       scrollTopRef.current = el.scrollTop
+      updateLatestButton()
     }
     el.addEventListener('scroll', onScroll, { passive: true })
     return () => el.removeEventListener('scroll', onScroll)
-  }, [isMobile, scrollToBottom])
+  }, [isMobile, scrollToBottom, updateLatestButton])
 
   const lastIndex = messages.length - 1
   const uploadRetryId = getUploadRetryId(messages, streaming)
   return (
-    <ScrollToBottomContext.Provider value={scrollToBottom}>
+    <MessageScrollContext.Provider value={scrollActions}>
       <div ref={isMobile ? undefined : scrollRef} className={styles.container}>
         <div ref={isMobile ? scrollRef : undefined} className={styles.scroll}>
           <div ref={contentRef} className={styles.column}>
@@ -190,8 +217,27 @@ export const MessageList = ({
             )}
           </div>
         </div>
+        {mobileLatest && showLatest ? (
+          <div className={styles.latestDock}>
+            <Button
+              size="m"
+              variant="outlined"
+              className={styles.latestButton}
+              aria-label={t('backToLatest')}
+              onClick={() => {
+                stickyRef.current = true
+                scrollToBottom()
+              }}
+            >
+              <span className={styles.latestFace}>
+                <IconChevronDownOutline14 />
+                {t('backToLatest')}
+              </span>
+            </Button>
+          </div>
+        ) : null}
         {footer}
       </div>
-    </ScrollToBottomContext.Provider>
+    </MessageScrollContext.Provider>
   )
 }

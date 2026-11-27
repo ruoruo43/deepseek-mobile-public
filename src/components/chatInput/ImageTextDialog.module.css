@@ -1,0 +1,49 @@
+.dialog {
+  width: 490px;
+  max-height: calc(100dvh - 24px);
+  overflow-y: auto;
+}
+
+.note,
+.error {
+  margin: 0;
+  line-height: 1.5;
+}
+
+.error {
+  color: var(--dsw-alias-state-error-primary);
+}
+
+.field {
+  display: grid;
+  gap: 8px;
+  color: var(--dsw-alias-label-primary);
+}
+
+.field textarea {
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 94px;
+  height: min(29dvh, 232px);
+  padding: 9px 10px;
+  border: 1px solid var(--ds-app-line);
+  border-radius: 12px;
+  background: var(--ds-app-canvas);
+  color: inherit;
+  font: inherit;
+  font-size: 1rem;
+  line-height: 1.4;
+  resize: vertical;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.actions button {
+  min-height: 44px;
+  padding-inline: 10px;
+}

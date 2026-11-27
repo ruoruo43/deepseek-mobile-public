@@ -141,6 +141,23 @@
   opacity: 1;
 }
 
+.quoteAction {
+  min-width: 44px;
+  min-height: 44px;
+  padding: 0 6px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--dsw-alias-label-secondary);
+  font: inherit;
+  font-size: 0.8125rem;
+  cursor: pointer;
+
+  &:is(:hover, :active) {
+    background: var(--dsw-alias-interactive-bg-hover);
+  }
+}
+
 .continueButton {
   margin-left: auto;
 }

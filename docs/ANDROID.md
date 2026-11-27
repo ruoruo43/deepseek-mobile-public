@@ -11,6 +11,7 @@ Android 客户端默认显示简体中文。需要切换时，打开「设置 �
 - 会话抽屉可以搜索标题、消息正文和文件名，并可通过会话菜单置顶、分享当前分支的文本。记录保存在本机。设置提供 ZIP 导出与恢复。
 - 对话有两次或更多提问时，点标题展开「提问目录」，选一条即可跳到对应消息。会话菜单的「导出为 Markdown」保存当前分支的正文和附件名称。
 - 从输入框「添加附件」选择拍照、相册或文件。相册通过 Android 系统选择器授权已选照片，拍照通过系统相机取得图片。Flash 可发送图片。点击对话里的附件可以保存原件。
+- 「添加附件 → 图片转文字」在本机识别选中图片里的简体中文和英文，结果可修改、复制或插入草稿。连接页也提供这个入口，可直接选图和复制文字。
 - 首页的「快捷提问」提供总结、润色和解释，把提示词放进输入框，确认发送后才调用 API。
 
 ## GitHub 更新
@@ -30,6 +31,8 @@ APK 内置页面，通过 HTTPS 调用 `api.deepseek.com`。聊天内容和主�
 API Key 通过 Android Keystore 管理的 AES-GCM 密钥加密后保存在应用私有数据中。密钥在请求时进入内存，聊天归档不包含密钥或自定义指令。卸载或清除应用数据后需要重新配置。
 
 手动检查更新时，Android 原生代码通过 HTTPS 查询 GitHub 的公开发布信息。
+
+图片转文字使用 APK 内置的模型。原图交给本机识别，识别结果插入草稿后，由用户点发送才作为对话文字交给 DeepSeek。
 
 ## 构建
 
@@ -52,6 +55,8 @@ pnpm run build
 ```
 
 安装包位于 `build/ds-chat-<版本>-android.apk`，适用 Android 8.0 及以上。请使用设备可更新到的最新版 Android System WebView。加 `-Qa` 构建隔离的 QA 包，包名后缀为 `.qa`，可供测试人员检查 WebView。
+
+构建脚本按 `android/ocr.lock.json` 获取 OCR 依赖与模型，验证 SHA-256 后缓存在 `build/android-ocr`。APK 内的 `assets/ocr/licenses` 保留依赖许可和声明。[Tesseract4Android 4.9.0](https://github.com/adaptech-cz/Tesseract4Android/releases/tag/4.9.0) · [tessdata_fast 4.1.0](https://github.com/tesseract-ocr/tessdata_fast/tree/65727574dfcd264acbb0c3e07860e4e9e9b22185)
 
 ## 来源
 

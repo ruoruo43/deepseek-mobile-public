@@ -27,6 +27,9 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.util.Arrays;
 import java.util.ArrayList;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.function.Consumer;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -35,6 +38,8 @@ public final class MainActivity extends Activity {
     private static final int RECORD_AUDIO = 11;
     private static final int SAVE_HISTORY = 12;
     private static final int CAPTURE_PHOTO = 13;
+    // Request 14 belongs to the GitHub update installer.
+    private static final int PICK_OCR_IMAGE = 15;
     private static final int CAMERA_URI_FLAGS =
             Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_GRANT_WRITE_URI_PERMISSION;
     private static final int MAX_PICK_IMAGES = 50;
@@ -50,6 +55,8 @@ public final class MainActivity extends Activity {
     private PermissionRequest audioRequest;
     private int exportRequestId;
     private OutputStream exportOutput;
+    private final ExecutorService imageTextWorker = Executors.newSingleThreadExecutor();
+    private Consumer<JSONObject> imageTextResult;
 
     @Override
     protected void onCreate(Bundle state) {
@@ -119,6 +126,9 @@ public final class MainActivity extends Activity {
                     break;
                 case "github.release.install":
                     reply(id, true, githubUpdates.install(value));
+                    break;
+                case "ocr.pick":
+                    pickImageForText(result -> reply(sourcePort, requestId, true, result));
                     break;
                 case "appearance.textZoom":
                     int zoom = Integer.parseInt(value);
@@ -210,7 +220,7 @@ public final class MainActivity extends Activity {
         if (output != null) output.close();
     }
 
-    private void openPhotoPicker(boolean multiple) {
+    private void openPhotoPicker(int requestCode, boolean multiple) {
         if (Build.VERSION.SDK_INT >= 33) {
             Intent photoPicker = new Intent(MediaStore.ACTION_PICK_IMAGES).setType("image/*");
             if (multiple) {
@@ -218,7 +228,7 @@ public final class MainActivity extends Activity {
                         Math.min(MAX_PICK_IMAGES, MediaStore.getPickImagesMaxLimit()));
             }
             try {
-                startActivityForResult(photoPicker, PICK_FILE);
+                startActivityForResult(photoPicker, requestCode);
                 return;
             } catch (ActivityNotFoundException e) {
                 // Some devices use the system document picker for photos.
@@ -228,7 +238,26 @@ public final class MainActivity extends Activity {
                 .addCategory(Intent.CATEGORY_OPENABLE)
                 .setType("image/*")
                 .putExtra(Intent.EXTRA_ALLOW_MULTIPLE, multiple);
-        startActivityForResult(documents, PICK_FILE);
+        startActivityForResult(documents, requestCode);
+    }
+
+    private void pickImageForText(Consumer<JSONObject> finish) {
+        if (imageTextResult != null || fileCallback != null) {
+            finish.accept(ImageTextRecognition.status("busy"));
+            return;
+        }
+        imageTextResult = finish;
+        try {
+            openPhotoPicker(PICK_OCR_IMAGE, false);
+        } catch (ActivityNotFoundException | SecurityException e) {
+            finishImageText(ImageTextRecognition.status("failed"));
+        }
+    }
+
+    private void finishImageText(JSONObject result) {
+        Consumer<JSONObject> finish = imageTextResult;
+        imageTextResult = null;
+        if (finish != null) finish.accept(result);
     }
 
     private void openCamera() throws IOException {
@@ -286,6 +315,16 @@ public final class MainActivity extends Activity {
         if (githubUpdates.onActivityResult(request)) return;
         if (request == PICK_FILE) {
             finishFileChoice(pickedContent(result, data));
+        } else if (request == PICK_OCR_IMAGE && imageTextResult != null) {
+            Uri[] images = pickedContent(result, data);
+            if (images == null) {
+                finishImageText(ImageTextRecognition.status(result == RESULT_OK ? "unreadable" : "cancelled"));
+            } else {
+                imageTextWorker.execute(() -> {
+                    JSONObject recognition = ImageTextRecognition.recognize(getApplicationContext(), images[0]);
+                    runOnUiThread(() -> finishImageText(recognition));
+                });
+            }
         } else if (request == CAPTURE_PHOTO) {
             File photo = takeCapturedPhoto();
             if (result == RESULT_OK && photo != null && photo.length() > 0 && fileCallback != null) {
@@ -338,6 +377,8 @@ public final class MainActivity extends Activity {
     @Override
     protected void onDestroy() {
         finishFileChoice(null);
+        imageTextResult = null;
+        imageTextWorker.shutdownNow();
         File photo = takeCapturedPhoto();
         if (photo != null) photo.delete();
         if (audioRequest != null) audioRequest.deny();
@@ -357,7 +398,7 @@ public final class MainActivity extends Activity {
         @Override
         public boolean onShowFileChooser(
                 WebView view, ValueCallback<Uri[]> callback, FileChooserParams params) {
-            if (fileCallback != null || !LocalWebClient.START_URL.equals(view.getUrl())) {
+            if (fileCallback != null || imageTextResult != null || !LocalWebClient.START_URL.equals(view.getUrl())) {
                 callback.onReceiveValue(null);
                 return true;
             }
@@ -369,7 +410,7 @@ public final class MainActivity extends Activity {
                 if (capture) {
                     openCamera();
                 } else if (images) {
-                    openPhotoPicker(params.getMode() == FileChooserParams.MODE_OPEN_MULTIPLE);
+                    openPhotoPicker(PICK_FILE, params.getMode() == FileChooserParams.MODE_OPEN_MULTIPLE);
                 } else {
                     startActivityForResult(params.createIntent(), PICK_FILE);
                 }

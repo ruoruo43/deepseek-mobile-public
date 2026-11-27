@@ -1,6 +1,10 @@
 import { createContext, useContext } from 'react'
 
-/** 渲染更新后请求滚到底部；用户上滑离开底部时由列表忽略 */
-export const ScrollToBottomContext = createContext<() => void>(() => {})
+/** 列表跟随最新回复，用户主动阅读上方内容时暂停。 */
+export const MessageScrollContext = createContext({
+  scrollToBottom: () => {},
+  pauseFollowing: () => {},
+})
 
-export const useScrollToBottom = () => useContext(ScrollToBottomContext)
+export const useScrollToBottom = () => useContext(MessageScrollContext).scrollToBottom
+export const usePauseFollowing = () => useContext(MessageScrollContext).pauseFollowing

@@ -8,6 +8,8 @@
   align-self: flex-end;
   width: 468px;
   max-width: calc(100% - 20px);
+  max-height: calc(100dvh - 20px);
+  overflow-y: auto;
   margin: 0 10px calc(10px + env(safe-area-inset-bottom));
   padding: 18px clamp(14px, 4.6vw, 22px) 20px;
   border: 1px solid var(--ds-app-line);

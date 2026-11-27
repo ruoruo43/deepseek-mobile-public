@@ -32,6 +32,7 @@ import { Tooltip } from '../base/Tooltip.js'
 import { Markdown } from '../markdown/Markdown.js'
 import { SiteThumbnails } from '../search/SiteLogo.js'
 import { toggleSearchPanel, useSearchPanel } from '../search/searchPanelState.js'
+import { usePauseFollowing } from './scrollContext.js'
 import styles from './ReplyArea.module.css'
 import './thinking.markdown.css'
 
@@ -65,37 +66,49 @@ export const ReplyArea = memo(function ReplyArea({
   hasResponse: boolean
 }) {
   useTranslate()
-  const [open, setOpen] = useState(true)
+  const pauseFollowing = usePauseFollowing()
+  const [open, setOpen] = useState(false)
   const titleActive = streaming && !hasResponse
   useTicker(titleActive, 1000)
   if (view.steps.length === 0 && !(message.thinking && streaming)) {
     return null
   }
-  // 未记录请求开关时，按是否有思考内容显示标题。
-  const thinking = message.thinking ?? view.steps.some((step) => step.type === 'thinking')
+  // 历史记录可能缺少请求开关，实际接收到的思考块也应有独立的折叠入口。
+  const thinking = message.thinking || view.steps.some((step) => step.type === 'thinking')
   const title = thinking ? getAreaTitle(view, streaming, Date.now(), hasResponse) : null
   const stopped = !streaming && !hasResponse
+  const steps = open || !title ? view.steps : view.steps.filter((step) => step.type !== 'thinking')
   return (
     <div className={styles.area}>
       {title ? (
-        <div className={styles.title} onClick={() => setOpen((value) => !value)}>
+        <button
+          type="button"
+          className={styles.title}
+          aria-expanded={open}
+          onClick={() => {
+            if (!open) {
+              pauseFollowing()
+            }
+            setOpen(!open)
+          }}
+        >
           <span className={clsx(styles.titleIcon, stopped && styles.stoppedIcon)}>
             <IconThinkOutline16 />
           </span>
           <span className={clsx(styles.titleText, titleActive && styles.shimmer)}>{title}</span>
           {open ? <IconChevronDownOutline14 /> : <IconChevronRightOutline14 />}
-        </div>
+        </button>
       ) : null}
-      {open || !title ? (
+      {steps.length > 0 ? (
         <div className={styles.steps}>
-          {view.steps.map((step, index) => (
+          {steps.map((step, index) => (
             <StepItem
               key={stepKey(step, index)}
               step={step}
               message={message}
               sources={view.sources}
               streaming={streaming}
-              isLast={index === view.steps.length - 1}
+              isLast={index === steps.length - 1}
             />
           ))}
         </div>

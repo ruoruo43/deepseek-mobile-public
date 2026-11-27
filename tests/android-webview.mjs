@@ -51,6 +51,8 @@ function send(method, params = {}) {
 const fakeKey = 'qa-key-verified-offline'
 const chatTitle = '周末读书计划'
 const searchKeyword = '预留缓冲'
+const reasoningFixture = '这是用于核验折叠的思考内容。'
+const answerPreamble = '先说明安排依据。'
 const answer = [
   '可以按选书、阅读、整理三步安排。',
   '**周六**上午读 30 分钟，在书里标出一句最有启发的话。',
@@ -59,15 +61,35 @@ const answer = [
   '```mermaid\nflowchart TD\n  A[选书] --> B[阅读]\n  B --> C[整理]\n```',
 ].join('\n\n')
 
-function sseBody(m) {
+const textBlockEvents = (index, text) => [
+  { type: 'content_block_start', index, content_block: { type: 'text', text: '' } },
+  { type: 'content_block_delta', index, delta: { type: 'text_delta', text } },
+  { type: 'content_block_stop', index },
+]
+
+function sseBody(m, includeThinking = false) {
   const events = [
     {
       type: 'message_start',
       message: { id: 'qa_reply', type: 'message', role: 'assistant', model: m },
     },
-    { type: 'content_block_start', index: 0, content_block: { type: 'text', text: '' } },
-    { type: 'content_block_delta', index: 0, delta: { type: 'text_delta', text: answer } },
-    { type: 'content_block_stop', index: 0 },
+    ...(includeThinking
+      ? [
+          ...textBlockEvents(0, answerPreamble),
+          {
+            type: 'content_block_start',
+            index: 1,
+            content_block: { type: 'thinking', thinking: '' },
+          },
+          {
+            type: 'content_block_delta',
+            index: 1,
+            delta: { type: 'thinking_delta', thinking: reasoningFixture },
+          },
+          { type: 'content_block_stop', index: 1 },
+        ]
+      : []),
+    ...textBlockEvents(includeThinking ? 2 : 0, answer),
     {
       type: 'message_delta',
       delta: { stop_reason: 'end_turn', title: chatTitle },
@@ -113,7 +135,10 @@ async function respond({ requestId, request }) {
     const payload = JSON.parse(request.postData ?? '{}')
     stubRequests.push({ path, payload })
     type = 'text/event-stream'
-    body = sseBody(payload.model)
+    if (mode === 'chat-extras') {
+      await new Promise((resolve) => setTimeout(resolve, 900))
+    }
+    body = sseBody(payload.model, mode === 'chat-extras')
   } else if (path === '/anthropic/v1/files' && mode === 'picker') {
     assert.equal(headers['x-api-key'], fakeKey)
     assert.match(headers['content-type'] ?? '', /^multipart\/form-data/)
@@ -467,11 +492,29 @@ async function testChatExtras() {
     'both composer modes retain readable labels'
   )
   await snapshot('中文首页')
+  assert(
+    await evaluate(() => {
+      const toggle = document.querySelector('button[aria-label="深度思考"]')
+      if (toggle?.getAttribute('aria-pressed') === 'false') toggle.click()
+      return Boolean(toggle)
+    })
+  )
   const prompts = ['目录核验第一问', '目录核验第二问']
   for (const [index, prompt] of prompts.entries()) {
     await until(() => find('textarea'), 'active composer')
     assert(await type('textarea', prompt))
     assert(await clickLabel('^发送$'))
+    if (index === 0) {
+      await until(
+        () =>
+          evaluate(() =>
+            [...document.querySelectorAll('button[aria-expanded="false"]')].some(
+              (button) => button.textContent.trim() === '正在思考'
+            )
+          ),
+        'thinking starts collapsed during generation'
+      )
+    }
     await until(
       async () =>
         await evaluate(
@@ -482,6 +525,24 @@ async function testChatExtras() {
         ),
       'answer ' + (index + 1)
     )
+    assert.equal(await visibleText(reasoningFixture), false)
+    assert(await visibleText(answerPreamble))
+    if (index === 0) {
+      const folded = 'button[aria-expanded="false"]'
+      const expanded = 'button[aria-expanded="true"]'
+      await until(() => find('button[aria-label="引用追问"]'), 'completed answer actions')
+      await evaluate((selector) => {
+        const header = [...document.querySelectorAll(selector)].find((button) =>
+          button.textContent.trim().startsWith('已思考')
+        )
+        header?.scrollIntoView({ block: 'start' })
+      }, folded)
+      await snapshot('思考默认收起')
+      assert(await clickLabel('^已思考', folded))
+      assert(await visibleText(reasoningFixture))
+      assert(await clickLabel('^已思考', expanded))
+      assert.equal(await visibleText(reasoningFixture), false)
+    }
   }
   assert(await clickLabel('^提问目录$'))
   await until(() => find('[role="dialog"]'), 'question outline')
@@ -502,6 +563,58 @@ async function testChatExtras() {
     'scroll to the first question'
   )
   await snapshot('跳转到提问')
+
+  await until(() => find('button[aria-label="回到最新"]'), 'return to latest button')
+  assert(
+    await evaluate(() => {
+      const button = document.querySelector('button[aria-label="回到最新"]')
+      const list = document.querySelector('[data-question-id]')?.parentElement?.parentElement
+      return button.getBoundingClientRect().top >= list.getBoundingClientRect().bottom - 1
+    }),
+    'return to latest stays outside the scrollable answer'
+  )
+  await snapshot('回到最新入口')
+  assert(await clickLabel('^回到最新$'))
+  await until(async () => !(await find('button[aria-label="回到最新"]')), 'scrolled to the end')
+
+  const quoteLatest = () =>
+    evaluate(() => {
+      const button = [...document.querySelectorAll('button[aria-label="引用追问"]')].at(-1)
+      button?.click()
+      return Boolean(button)
+    })
+  const quotePreview = '[role="group"][aria-label="引用回复"]'
+  assert(await quoteLatest())
+  assert(await find(quotePreview))
+  assert.equal(await find('button[aria-label="发送"]'), false)
+  await snapshot('引用追问草稿')
+  const followUp = '能把计划压缩到半天吗？'
+  assert(await type('textarea', followUp))
+  assert(await clickLabel('^移除引用$'))
+  assert.equal(await find(quotePreview), false)
+  assert.equal(await evaluate(() => document.querySelector('textarea').value), followUp)
+  assert(await quoteLatest())
+  assert.equal(await evaluate(() => document.querySelector('textarea').value), followUp)
+  assert.equal(stubRequests.filter(({ payload }) => payload).length, 2)
+  assert(await clickLabel('^发送$'))
+  await until(() => stubRequests.filter(({ payload }) => payload).length === 3, 'quoted follow-up')
+  const latestRequest = stubRequests.filter(({ payload }) => payload).at(-1).payload
+  const question = latestRequest.messages.filter(({ role }) => role === 'user').at(-1)
+  const questionText =
+    typeof question.content === 'string'
+      ? question.content
+      : question.content
+          .filter(({ type }) => type === 'text')
+          .map(({ text }) => text)
+          .join('\n')
+  assert(questionText.startsWith('> 可以按选书、阅读、整理三步安排。'))
+  assert(questionText.endsWith(followUp))
+  assert(!questionText.includes(reasoningFixture))
+  assert.equal(await find(quotePreview), false)
+  await until(
+    () => evaluate(() => document.querySelectorAll('button[aria-label="引用追问"]').length === 3),
+    'quoted follow-up answer'
+  )
 
   await evaluate(() => {
     const original = MessagePort.prototype.postMessage
@@ -551,7 +664,9 @@ async function testChatExtras() {
   } finally {
     await evaluate(() => window.qaRestoreExportBridge?.())
   }
-  console.log('PASS: question navigation, Android back, and local Markdown export')
+  console.log(
+    'PASS: collapsed thinking, visible answer text, return to latest, quote and Markdown export'
+  )
 }
 
 try {
