@@ -63,13 +63,18 @@ export const SessionItem = memo(function SessionItem({
     <div
       className={clsx(styles.item, active && styles.active)}
       aria-current={active ? 'page' : undefined}
-      onClick={() => {
-        selectSession(session.id)
-        closeMobileSider()
-      }}
     >
-      <div className={styles.title}>{displayTitle}</div>
-      <div className={styles.action} onClick={(event) => event.stopPropagation()}>
+      <button
+        type="button"
+        className={styles.title}
+        onClick={() => {
+          selectSession(session.id)
+          closeMobileSider()
+        }}
+      >
+        {displayTitle}
+      </button>
+      <div className={styles.action}>
         <Menu
           options={[
             {
@@ -114,7 +119,12 @@ export const SessionItem = memo(function SessionItem({
           ]}
         >
           {({ toggle }) => (
-            <IconButton icon={<IconEllipsisOutline16 />} aria-label={t('more')} onClick={toggle} />
+            <IconButton
+              size={androidApp ? 'xl' : 'm'}
+              icon={<IconEllipsisOutline16 />}
+              aria-label={t('more')}
+              onClick={toggle}
+            />
           )}
         </Menu>
       </div>

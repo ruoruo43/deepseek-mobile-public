@@ -4,12 +4,11 @@
   align-items: center;
   box-sizing: border-box;
   height: 40px;
-  padding: 9px 6px 9px 10px;
+  padding: 0 6px 0 0;
   border-radius: 12px;
   font-size: 14px;
   line-height: 22px;
   color: var(--dsw-alias-label-primary);
-  cursor: pointer;
 
   &.active {
     background-color: var(--dsw-specific-sidebar-nav-item-active-accent);
@@ -22,6 +21,7 @@
     }
 
     &:hover,
+    &:focus-within,
     &.active {
       .action {
         display: flex;
@@ -33,10 +33,18 @@
 .title {
   flex: 1;
   min-width: 0;
+  height: 100%;
+  padding: 0 0 0 10px;
   overflow: hidden;
+  border: 0;
+  border-radius: inherit;
+  background: transparent;
+  color: inherit;
+  font: inherit;
   white-space: nowrap;
   text-overflow: ellipsis;
-  line-height: 18px;
+  text-align: start;
+  cursor: pointer;
 }
 
 .action {
@@ -60,16 +68,18 @@
 }
 
 :global([data-ds-android]) .item {
-  min-height: 45px;
-  margin-bottom: 3px;
-  padding-inline: 9px 4px;
+  min-height: 50px;
+  margin-bottom: 2px;
+  padding-inline: 0 2px;
   border: 1px solid transparent;
   border-radius: 11px;
-  font-size: 14px;
+  font-size: 0.94rem;
 }
 
 :global([data-ds-android]) .item.active {
   border-color: var(--ds-app-line);
+  color: var(--dsw-alias-brand-text);
+  background: var(--ds-app-accent-soft);
 }
 
 @media (hover: none) {
@@ -81,7 +91,7 @@
 @media not all and (min-width: 768px) {
   .item {
     height: 44px;
-    padding: 11px 6px 11px 12px;
+    padding: 0 6px 0 0;
     border-radius: 16px;
     font-size: 16px;
   }

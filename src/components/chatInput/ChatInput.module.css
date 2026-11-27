@@ -303,6 +303,10 @@
   }
 }
 
+.toggleFace {
+  display: contents;
+}
+
 .right {
   display: flex;
   flex-shrink: 0;
@@ -338,14 +342,20 @@
 }
 
 :global([data-ds-android]) .wrapper {
-  --input-padding-top: 14px;
-  border-radius: 23px;
+  --input-padding-top: 10px;
   border-color: var(--ds-app-line);
-  box-shadow: none;
+  border-radius: 18px;
+  background: var(--ds-app-panel);
+  box-shadow: 0 2px 8px rgb(23 60 110 / 4%);
+}
+
+:global([data-ds-android]) :is(.textarea, .mirror) {
+  min-height: max(44px, calc(var(--line-height) + var(--input-padding-top) + 4px));
+  padding-bottom: 4px;
 }
 
 :global([data-ds-android]) .textarea::placeholder {
-  color: var(--dsw-alias-label-tertiary);
+  color: var(--dsw-alias-label-secondary);
 }
 
 :global([data-ds-android]) .textarea:focus-visible {
@@ -357,36 +367,80 @@
 }
 
 :global([data-ds-android]) .functionRow {
-  gap: 8px;
-  margin: 4px 8px 8px;
-  padding: 2px;
+  gap: 4px;
+  margin: 0;
+  padding: 0 5px 2px;
 }
 
 :global([data-ds-android]) .toggles {
-  gap: 6px;
+  gap: 3px;
 }
 
 :global([data-ds-android]) .toggle {
   min-width: 44px;
   min-height: 44px;
-  padding-inline: 8px;
-  border-radius: 14px;
-  border-color: var(--ds-app-line);
+  padding: 0;
+  border: 0;
+  border-radius: 12px;
+  background: transparent;
+  font-size: 13px;
 }
 
-:global([data-ds-android]) .toggle.selected {
+:global([data-ds-android]) .toggleFace {
+  display: inline-flex;
+  align-items: center;
+  box-sizing: border-box;
+  min-height: 28px;
+  gap: 5px;
+  padding: 1px 7px;
+  border: 1px solid var(--ds-app-line);
+  border-radius: 9px;
+}
+
+:global([data-ds-android]) .toggle.selected .toggleFace {
+  border-color: var(--dsw-alias-button-ghost-active-border);
   background-color: var(--ds-app-accent-soft);
 }
 
+:global([data-ds-android]) .toggle:hover:not(:disabled) {
+  background: transparent;
+}
+
+:global([data-ds-android]) .toggle:not(:disabled):active .toggleFace {
+  background-color: var(--dsw-alias-interactive-bg-hover);
+}
+
 :global([data-ds-android]) .sendButton {
+  position: relative;
   width: 44px;
   height: 44px;
-  margin-left: 3px;
-  border-radius: 14px;
+  margin-left: 0;
+  border-radius: 10px;
+  background: transparent;
+}
+
+:global([data-ds-android]) .sendButton::before {
+  position: absolute;
+  inset: 7px;
+  border-radius: 9px;
+  background: var(--dsw-alias-button-primary-fill);
+  content: '';
+}
+
+:global([data-ds-android]) .sendButton:not(.disabled):hover {
+  background: transparent;
+}
+
+:global([data-ds-android]) .sendButton:not(.disabled):hover::before {
+  background: var(--dsw-alias-button-primary-hover);
+}
+
+:global([data-ds-android]) .sendButton svg {
+  position: relative;
 }
 
 :global([data-ds-android]) .right {
-  gap: 6px;
+  gap: 2px;
 }
 
 :global([data-ds-android]) .right button {
@@ -394,13 +448,11 @@
   min-height: 44px;
 }
 
-:global([data-ds-android]) .functionRow:not(.withSend) .right > :last-child > button {
-  border-radius: 14px;
-  background: var(--ds-app-accent-soft);
+:global([data-ds-android]) .functionRow button:focus-visible {
+  outline-offset: -2px;
 }
 
-.stackedToggles .toggle,
-:global([data-ds-android]) .stackedToggles .toggle {
+.stackedToggles .toggle {
   flex-direction: column;
   gap: 1px;
   min-width: 44px;
@@ -411,9 +463,23 @@
 }
 
 @media (max-width: 300px) {
+  :global([data-ds-android]) .functionRow {
+    padding-inline: 2px;
+  }
+
+  :global([data-ds-android]) .toggles {
+    gap: 2px;
+  }
+
+  :global([data-ds-android]) .right {
+    gap: 0;
+  }
+}
+
+@media (max-width: 257px) {
   :global([data-ds-android]) .withSend {
     flex-wrap: wrap;
-    row-gap: 6px;
+    row-gap: 2px;
   }
 
   :global([data-ds-android]) .withSend .toggles {

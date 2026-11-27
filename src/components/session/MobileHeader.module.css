@@ -47,29 +47,51 @@
 }
 
 :global([data-ds-android]) .header {
-  height: 60px;
+  height: 56px;
   gap: clamp(6px, 2.4vw, 10px);
-  padding: 6px var(--ds-app-gutter);
-  border-bottom: 1px solid var(--ds-app-line);
-  background: var(--ds-app-panel);
+  padding: 4px var(--ds-app-gutter);
+  background: var(--ds-app-canvas);
 }
 
-:global([data-ds-android]) .title {
+:global([data-ds-android]) .title,
+.brandTitle {
   margin: 0;
   font: inherit;
-  font-size: 16px;
+  font-size: 1rem;
   font-weight: 660;
   line-height: 1.3;
+}
+
+.brandTitle {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  color: var(--dsw-alias-label-primary);
+}
+
+.brandTitle span:last-child {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.brandTitle .mark {
+  flex: 0 0 30px;
+  width: 30px;
+  height: 30px;
+  border-radius: 9px;
 }
 
 :global([data-ds-android]) .models > button {
   min-height: 44px;
   min-width: 65px;
-  padding-inline: 10px 32px;
-  border: 1px solid var(--ds-app-line);
-  border-radius: 12px;
-  background-color: var(--ds-app-tint);
-  color: var(--dsw-alias-brand-text);
+  padding-inline: 8px 28px;
+  border: 1px solid transparent;
+  border-radius: 10px;
+  background-color: transparent;
+  color: var(--dsw-alias-label-secondary);
 }
 
 :global([data-ds-android]) .chromeButton {
@@ -78,7 +100,7 @@
 }
 
 :global([data-ds-android]) .chromeButton:active {
-  background: var(--ds-app-tint);
+  background: var(--ds-app-accent-soft);
 }
 
 @media (max-width: 330px) {
@@ -87,8 +109,9 @@
     padding-inline: 8px;
   }
 
-  :global([data-ds-android]) .title {
-    font-size: 14px;
+  :global([data-ds-android]) .title,
+  .brandTitle {
+    font-size: 0.875rem;
   }
 
   :global([data-ds-android]) .titleButton span {

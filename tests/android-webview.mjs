@@ -208,7 +208,7 @@ async function snapshot(name) {
   mkdirSync(screenshots, { recursive: true })
   await evaluate(async () => {
     await document.fonts.ready
-    return true
+    await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)))
   })
   const { data } = await send('Page.captureScreenshot', { format: 'png' })
   writeFileSync(path.join(screenshots, name + '.png'), Buffer.from(data, 'base64'))
@@ -233,32 +233,44 @@ const sidebarMore = () =>
     return true
   })
 
+const settingsPanel = '[data-settings-content]'
+const settingsButtons = settingsPanel + ' button'
+const openSettingsPage = (name) => clickLabel('^(?:' + name + ')(?:\\s|$)', settingsButtons)
+
 async function openUpdates() {
   await until(() => find('textarea'), 'chat restored')
   assert.equal(await evaluate(() => document.documentElement.lang), 'zh-CN')
   assert(await clickLabel('^打开边栏$'))
   assert(await clickLabel('^设置$'))
-  assert(await clickLabel('^GitHub 更新$', '[role="tab"]'))
+  assert(await openSettingsPage('GitHub 更新'))
   const version = await evaluate(
     () => document.querySelector('meta[name="application-version"]')?.content
   )
   assert.match(version ?? '', /^\d+\.\d+\.\d+$/)
   await until(
     async () =>
-      (await evaluate(() => document.querySelector('[role="tabpanel"] dd')?.textContent)) ===
-      version,
+      (await evaluate(
+        (selector) => document.querySelector(selector)?.textContent,
+        settingsPanel + ' dd'
+      )) === version,
     'installed version'
   )
   return version
 }
 
-const clickUpdateCheck = () => clickLabel('^检查更新$', '[role="tabpanel"] button')
+const clickUpdateCheck = () => clickLabel('^检查更新$', settingsButtons)
 const updateStatus = () =>
-  evaluate(() => document.querySelector('[role="tabpanel"] [role="status"]')?.textContent ?? '')
+  evaluate(
+    (selector) => document.querySelector(selector)?.textContent ?? '',
+    settingsPanel + ' [role="status"]'
+  )
 const updateDownload = () =>
-  evaluate(() => document.querySelector('[role="tabpanel"] a')?.getAttribute('href') ?? null)
+  evaluate(
+    (selector) => document.querySelector(selector)?.getAttribute('href') ?? null,
+    settingsPanel + ' a'
+  )
 
-const fontPreviewSelector = '[role="tabpanel"] fieldset + p'
+const fontPreviewSelector = settingsPanel + ' fieldset + p'
 
 const previewTextSize = () =>
   evaluate((selector) => {
@@ -270,6 +282,7 @@ async function testTypography(restore) {
   await until(() => find('textarea'), 'chat restored')
   assert(await clickLabel('^打开边栏$'))
   assert(await clickLabel('^设置$'))
+  assert(await openSettingsPage('外观与字号'))
   await until(() => find(fontPreviewSelector), 'font size preview')
   await evaluate(async () => {
     await document.fonts.ready
@@ -302,6 +315,7 @@ async function testTypography(restore) {
     assert(await clickLabel('^特大$', 'fieldset button'))
     await until(async () => (await previewTextSize()) > standard, 'larger rendered text')
     assert.equal(await pressed(), '特大')
+    assert.equal(await evaluate(() => localStorage.getItem('ds-mobile:font-size')), '130')
     await snapshot('楷书与特大字号')
     console.log('PASS: Kai and Roman-compatible font glyphs loaded and native text size increased')
   } else {
@@ -339,10 +353,10 @@ async function testGitHubUpdates() {
     const installed = await openUpdates()
     assert.deepEqual(await evaluate(() => window.qaGitHubRequests), [])
     assert.deepEqual(
-      await evaluate(() =>
-        [...document.querySelectorAll('[role="tabpanel"] button')].map((button) =>
-          button.innerText.trim()
-        )
+      await evaluate(
+        (selector) =>
+          [...document.querySelectorAll(selector)].map((button) => button.innerText.trim()),
+        settingsButtons
       ),
       ['检查更新']
     )
@@ -387,12 +401,12 @@ async function testGitHubUpdates() {
     await evaluate(() => {
       window.qaGitHubResult = { status: 'ready' }
     })
-    assert(await clickLabel('^下载更新$', '[role="tabpanel"] button'))
+    assert(await clickLabel('^下载更新$', settingsButtons))
     await until(async () => (await updateStatus()).includes('安装包已校验'), 'verified package')
     await evaluate(() => {
       window.qaGitHubResult = { status: 'installerOpened' }
     })
-    assert(await clickLabel('^安装更新$', '[role="tabpanel"] button'))
+    assert(await clickLabel('^安装更新$', settingsButtons))
     await until(async () => (await updateStatus()).includes('安卓安装界面'), 'installer state')
     assert.deepEqual((await evaluate(() => window.qaGitHubRequests)).slice(-3), [
       { method: 'github.release.check', value: null },
@@ -408,7 +422,7 @@ async function testGitHubUpdates() {
 async function testLivePackageDownload() {
   await until(async () => (await find('#connect-key')) || (await find('textarea')), 'app ready')
   const isConnectionScreen = await find('#connect-key')
-  let panel = '[role="tabpanel"]'
+  let panel = settingsPanel
   let installed
   if (isConnectionScreen) {
     panel = '[role="dialog"]'
@@ -556,7 +570,7 @@ try {
     await until(() => find('textarea'), 'chat restored')
     assert(await clickLabel('^(Open sidebar|打开边栏)$'))
     assert(await clickLabel('^(Settings|设置)$'))
-    assert(await clickLabel('^(Data|Data Management|数据管理)$', '[role="tab"]'))
+    assert(await openSettingsPage('数据管理|Data Management|Data'))
     assert(await clickLabel('^(Download|下载)$', '[role="dialog"] button'))
     console.log('PASS: requested an Android document destination for history export')
   } else if (mode === 'github-updates') {
@@ -663,16 +677,27 @@ try {
     console.log(
       'PASS: invalid key rejected, valid key opens chat without plaintext WebView storage'
     )
+    const viewportWidth = await evaluate(() => innerWidth)
+    const expectedWidth = Number(process.env.DS_QA_VIEWPORT_WIDTH)
+    if (expectedWidth) {
+      assert(Math.abs(viewportWidth - expectedWidth) <= 1, 'expected Android viewport width')
+    }
+    console.log('Android WebView width: ' + viewportWidth + ' CSS px')
     assert.equal(await visibleText('今天想聊点什么？'), false)
     assert(
       await evaluate(async () => {
         await document.fonts.ready
         const labels = ['深度思考', '智能搜索', '添加附件', '语音输入']
-        const boxes = labels.map((label) =>
-          document.querySelector('button[aria-label="' + label + '"]')?.getBoundingClientRect()
+        const buttons = labels.map((label) =>
+          document.querySelector('button[aria-label="' + label + '"]')
         )
+        const boxes = buttons.map((button) => button?.getBoundingClientRect())
+        const chip = buttons[0]?.firstElementChild?.getBoundingClientRect()
         return (
           !document.querySelector('button[aria-label="发送"]') &&
+          chip &&
+          chip.height <= 30.5 &&
+          getComputedStyle(buttons[3]).backgroundColor === 'rgba(0, 0, 0, 0)' &&
           boxes.every(
             (box, index) =>
               box &&
@@ -683,7 +708,7 @@ try {
           )
         )
       }),
-      'the empty composer groups four full touch targets on a single non-overlapping row'
+      'compact control faces retain four full touch targets on a single row'
     )
     await snapshot('首页')
     assert(await clickLabel('^添加附件$'))
@@ -728,6 +753,22 @@ try {
       'the composer keeps its accent border while the textarea is focused'
     )
     assert(await find('button[aria-label="发送"]'))
+    if (viewportWidth >= 258) {
+      assert(
+        await evaluate(() => {
+          const buttons = ['深度思考', '智能搜索', '添加附件', '语音输入', '发送'].map((label) =>
+            document.querySelector('button[aria-label="' + label + '"]')?.getBoundingClientRect()
+          )
+          return buttons.every(
+            (box, index) =>
+              box &&
+              Math.abs(box.top - buttons[0].top) < 2 &&
+              (index === 0 || box.left >= buttons[index - 1].right)
+          )
+        }),
+        'adding the send action keeps the tool row on one line'
+      )
+    }
     assert(!stubRequests.some(({ payload }) => payload))
     console.log('PASS: welcome prompt shortcut fills the draft without sending')
 
@@ -748,18 +789,35 @@ try {
       })
     )
     assert(await clickLabel('^(Settings|设置)$'))
+    assert(
+      await evaluate((selector) => {
+        const panel = document.querySelector(selector)
+        return panel?.clientWidth >= Math.min(559, innerWidth - 1)
+      }, settingsPanel),
+      'the mobile settings index uses the available width'
+    )
     await snapshot('设置')
     if (screenshots) {
+      assert(await openSettingsPage('外观与字号'))
       assert(await clickLabel('^(Dark|深色)$', '[role="dialog"] button'))
       await until(() => find('body[data-ds-dark-theme]'), 'dark palette')
+      assert(await clickLabel('^返回设置$'))
       await snapshot('深色设置')
+      assert(await openSettingsPage('外观与字号'))
       assert(await clickLabel('^(System|跟随系统)$', '[role="dialog"] button'))
+      assert(await clickLabel('^返回设置$'))
     }
+    assert(await openSettingsPage('对话偏好'))
     const instructions = '请先给结论，再按天安排。'
     assert(await type('#instructions', instructions))
     assert(await clickLabel('^(Confirm|OK|确定|确认)$', '[role="dialog"] button'))
     await back()
+    await until(() => find(settingsPanel + '[aria-label="设置"]'), 'settings index after Back')
     await back()
+    await until(() => find('input[type="search"]'), 'history drawer after settings closes')
+    assert.equal(await find('[role="dialog"]'), false)
+    await back()
+    assert.equal(await find('input[type="search"]'), false)
 
     assert(await type('textarea', '帮我安排一个周末读书计划。每天只有半小时。'))
     assert(await clickLabel('^(Send|发送)$'))
@@ -838,8 +896,9 @@ try {
       () => evaluate(() => /No matching chats|没有找到匹配的会话/.test(document.body.innerText)),
       'empty history search'
     )
-    assert(await type('input[type="search"]', ''))
-    console.log('PASS: local body search, empty result and pinned group')
+    assert(await clickLabel('^清除搜索$'))
+    assert.equal(await evaluate(() => document.querySelector('input[type="search"]').value), '')
+    console.log('PASS: local body search, empty result, clear button and pinned group')
 
     const egressBlocked = await evaluate(async () => {
       try {

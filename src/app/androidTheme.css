@@ -63,9 +63,9 @@
 }
 
 [data-ds-android] body {
-  --ds-app-canvas: #f7faff;
+  --ds-app-canvas: #f8fafc;
   --ds-app-panel: #fff;
-  --ds-app-line: #dbe6f4;
+  --ds-app-line: #e0e7f0;
   --ds-app-accent: #2659d2;
   --ds-app-accent-soft: #e9f0ff;
   --ds-app-tint: #e3edfb;

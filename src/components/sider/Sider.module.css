@@ -274,11 +274,11 @@
 }
 
 :global([data-ds-android]) .mobile {
-  width: min(88vw, 340px);
+  width: min(88vw, 360px);
   max-width: calc(100vw - 24px);
   padding: 8px 14px 0;
   border: 0;
-  border-radius: 0 24px 24px 0;
+  border-radius: 0 18px 18px 0;
   box-shadow: 12px 0 36px rgb(10 26 56 / 20%);
 }
 
@@ -288,63 +288,97 @@
 
 :global([data-ds-android]) .top {
   height: 56px;
-  margin-bottom: 15px;
-  padding: 0;
+  margin: 0 0 6px;
+  padding: 0 2px;
 }
 
 :global([data-ds-android]) .appName {
   display: flex;
   align-items: center;
   gap: 10px;
-  font-size: 18px;
+  font-size: 1.125rem;
   font-weight: 680;
   color: var(--dsw-alias-label-primary);
 }
 
 :global([data-ds-android]) .newChat {
-  justify-content: flex-start;
-  min-height: 46px;
-  padding: 0 13px;
-  border-radius: 14px;
-  border-color: transparent;
-  background: var(--dsw-alias-button-primary-fill);
-  color: var(--dsw-static-neutral-bluish-00);
+  height: 48px;
+  padding: 0 6px;
+  border-radius: 11px;
+  border-color: var(--ds-app-line);
+  background: var(--ds-app-accent-soft);
+  color: var(--dsw-alias-brand-text);
   box-shadow: none;
 }
 
 :global([data-ds-android]) .newChat:active {
-  background: var(--dsw-alias-button-primary-hover);
+  background: var(--ds-app-tint);
 }
 
 :global([data-ds-android]) .chatSearch {
-  min-height: 46px;
-  margin: 14px 0 0;
+  min-height: 48px;
+  margin: 8px 0 0;
+  padding-inline: 12px 2px;
   border: 1px solid var(--ds-app-line);
-  border-radius: 13px;
-  background: var(--dsw-specific-login-input);
+  border-radius: 11px;
+  background: var(--ds-app-canvas);
+}
+
+:global([data-ds-android]) .chatSearch:focus-within {
+  border-color: var(--dsw-alias-brand-primary);
+}
+
+:global([data-ds-android]) .chatSearch > svg {
+  flex-shrink: 0;
+  color: var(--dsw-alias-label-secondary);
 }
 
 :global([data-ds-android]) .chatSearch input {
-  font-size: 13px;
+  min-height: 44px;
+  box-sizing: border-box;
+  padding-right: 5px;
+  outline: none;
+  font-size: 0.9rem;
+}
+
+:global([data-ds-android]) .chatSearch input::-webkit-search-cancel-button {
+  appearance: none;
+}
+
+.clearSearch {
+  flex-shrink: 0;
+}
+
+:global([data-ds-android]) .listWrap {
+  margin-top: 13px;
 }
 
 :global([data-ds-android]) .sectionHeader {
-  padding: 8px 6px 7px;
-  font-size: 12px;
+  padding: 7px 9px 5px;
+  font-size: 0.8125rem;
   color: var(--dsw-alias-label-secondary);
   font-weight: 630;
 }
 
 :global([data-ds-android]) .bottom {
-  padding: 9px 0 12px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 8px;
+  padding: 9px 0 calc(12px + env(safe-area-inset-bottom));
   border-top: 1px solid var(--ds-app-line);
 }
 
 :global([data-ds-android]) .settings {
-  min-height: 46px;
-  padding: 4px 8px;
-  border-radius: 13px;
+  min-height: 48px;
+  padding: 4px 10px 4px 7px;
+  border: 1px solid var(--ds-app-line);
+  border-radius: 11px;
   background: var(--ds-app-canvas);
+}
+
+:global([data-ds-android]) .settingsLabel {
+  margin-left: 5px;
+  font-size: 0.875rem;
 }
 
 :global([data-ds-android]) .settingsIcon {

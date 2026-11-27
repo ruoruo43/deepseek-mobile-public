@@ -1,7 +1,9 @@
 import type { MouseEventHandler } from 'react'
 import { IconChevronDownOutline14, IconMenuOutline20, IconNewChatOutline20 } from '../base/icons.js'
 import { useTranslate } from '../../i18n/index.js'
+import { androidApp } from '../../services/android.js'
 import { newChat } from '../../services/chat/store.js'
+import { BrandMark } from '../base/BrandMark.js'
 import { IconButton } from '../base/IconButton.js'
 import { openMobileSider } from '../sider/mobileSiderState.js'
 import { ModelSelect } from '../settings/ConversationSettings.js'
@@ -38,7 +40,10 @@ export const MobileHeader = ({
           <IconChevronDownOutline14 />
         </button>
       ) : (
-        <div className={styles.title}>{title ?? t('appName')}</div>
+        <div className={androidApp && title === undefined ? styles.brandTitle : styles.title}>
+          {androidApp && title === undefined ? <BrandMark compact className={styles.mark} /> : null}
+          <span>{title ?? t('appName')}</span>
+        </div>
       )}
       <div className={styles.models}>
         <ModelSelect />

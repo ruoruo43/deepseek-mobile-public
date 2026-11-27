@@ -1,11 +1,13 @@
 import clsx from 'clsx'
-import { useId, useRef, useState, type ReactNode } from 'react'
+import { useEffect, useId, useRef, useState, type ReactNode } from 'react'
 import {
+  IconChevronRightOutline14,
   IconDarkOutline16,
   IconDataOutline16,
   IconDownloadOutline16,
   IconFollowsystemOutline16,
   IconLightOutline16,
+  IconLinkOutline16,
   IconLoadingOutline16,
   IconRefreshOutline16,
   IconSettingsOutline16,
@@ -32,6 +34,7 @@ import {
 } from '../../services/settings.js'
 import { useTranslate, type TranslationKey, type TranslationMessage } from '../../i18n/index.js'
 import { Button } from '../base/Button.js'
+import { IconButton } from '../base/IconButton.js'
 import { Modal } from '../base/Modal.js'
 import { Select } from '../base/Select.js'
 import { showToast } from '../base/toastState.js'
@@ -42,10 +45,7 @@ import { TypographySetting } from './TypographySetting.js'
 import { closeSettings, useSettingsDialog, type SettingsSection } from './settingsDialogState.js'
 import styles from './Settings.module.css'
 
-/**
- * 设置弹窗包含通用设置、数据管理，以及 Android 的 GitHub 更新。
- * 桌面端为居中弹窗、左侧导航；移动端为底部弹层、导航横排在内容上方
- */
+/** 桌面端使用标签切换，Android 手机端从设置目录进入各分组。 */
 export const SettingsDialog = () => {
   const open = useSettingsDialog((state) => state.open)
   const historyImport = useHistoryImport()
@@ -62,6 +62,70 @@ const sections: { value: SettingsSection; label: TranslationKey; icon: ReactNode
   { value: 'updates', label: 'githubUpdates', icon: <IconRefreshOutline16 /> },
 ]
 
+const mobileSections = {
+  connection: { label: 'settingsConnectionPage', icon: <IconLinkOutline16 /> },
+  appearance: { label: 'settingsAppearancePage', icon: <IconLightOutline16 /> },
+  assistant: { label: 'settingsConversationPage', icon: <IconSettingsOutline16 /> },
+  storage: { label: 'settingDialogAsideDataOptionLabel', icon: <IconDataOutline16 /> },
+  updates: { label: 'githubUpdates', icon: <IconRefreshOutline16 /> },
+} satisfies Record<string, { label: TranslationKey; icon: ReactNode }>
+
+type MobileSection = keyof typeof mobileSections
+type MobilePage = 'menu' | MobileSection
+
+const mobileEntry: Record<SettingsSection, MobilePage> = {
+  general: 'menu',
+  data: 'connection',
+  updates: 'updates',
+}
+
+const mobileGroups: { label: TranslationKey; items: MobileSection[] }[] = [
+  { label: 'settingsPreferencesGroup', items: ['connection', 'appearance', 'assistant'] },
+  { label: 'settingsMaintenanceGroup', items: ['storage', 'updates'] },
+]
+
+const MobileSettingsMenu = ({
+  apiConfigured,
+  onSelect,
+}: {
+  apiConfigured: boolean
+  onSelect: (page: MobileSection) => void
+}) => {
+  const t = useTranslate()
+  const locale = useSettings((state) => state.locale)
+  const fontSize = useSettings((state) => state.fontSize)
+  const version = document.querySelector<HTMLMetaElement>(
+    'meta[name="application-version"]'
+  )?.content
+  const summaries: Partial<Record<MobileSection, string>> = {
+    connection: t(apiConfigured ? 'apiKeySaved' : 'settingsApiUnconfigured'),
+    appearance: `${t(locale === 'zh-CN' ? 'settingsLocaleZhCN' : 'settingsLocaleEnUS')} · ${fontSize}%`,
+    updates: version ? `v${version}` : undefined,
+  }
+  return mobileGroups.map((group) => (
+    <section key={group.label} className={styles.settingsGroup}>
+      <h2>{t(group.label)}</h2>
+      <div className={styles.settingsRows}>
+        {group.items.map((item) => (
+          <button
+            key={item}
+            type="button"
+            className={styles.settingsRow}
+            onClick={() => onSelect(item)}
+          >
+            <span className={styles.settingsRowIcon}>{mobileSections[item].icon}</span>
+            <span className={styles.settingsRowText}>
+              <span>{t(mobileSections[item].label)}</span>
+              {summaries[item] ? <small>{summaries[item]}</small> : null}
+            </span>
+            <IconChevronRightOutline14 />
+          </button>
+        ))}
+      </div>
+    </section>
+  ))
+}
+
 const SettingsContent = ({
   historyImport,
 }: {
@@ -69,96 +133,181 @@ const SettingsContent = ({
 }) => {
   const t = useTranslate()
   const isMobile = useIsMobile()
+  const useMobileMenu = isMobile && androidApp
   const tabId = useId()
-  // 打开时按调用方指定的分组选中，之后在弹窗内切换
   const [section, setSection] = useState(() => useSettingsDialog.getState().section)
-  // 切换分组不丢失正在输入的 API Key
+  const [mobilePage, setMobilePage] = useState<MobilePage>(() => mobileEntry[section])
+  const mobileHeading = useRef<HTMLSpanElement>(null)
+  const onMobileDetail = useMobileMenu && mobilePage !== 'menu'
   const apiKeyEditor = useApiKeyEditor()
   const historyDelete = useHistoryDelete()
   const replacingHistory = useChatStore((state) => state.importingHistory)
   const historyBusy = historyImport.busy || historyDelete.busy || replacingHistory
+
+  useEffect(() => {
+    mobileHeading.current?.focus({ preventScroll: true })
+  }, [useMobileMenu, mobilePage])
+
+  const close = () => {
+    if (historyDelete.busy) {
+      return
+    }
+    if (onMobileDetail) {
+      setMobilePage('menu')
+      return
+    }
+    historyImport.dismiss()
+    closeSettings()
+  }
+
+  const appearance = (
+    <>
+      <ThemeSetting />
+      {androidApp ? <TypographySetting /> : null}
+      <LocaleSetting />
+    </>
+  )
+  const model = <SettingCell label={t('chatModel')} status={null} action={<ModelSelect />} />
+  const connection = (
+    <>
+      <ApiKeyField editor={apiKeyEditor} />
+      {apiKeyEditor.apiKey ? (
+        <SettingCell label={t('apiKeySaved')} status={null} action={<ModelConnectionButton />} />
+      ) : null}
+    </>
+  )
+  const apiKeyConfirm = isMobile ? <ApiKeyConfirm editor={apiKeyEditor} /> : null
+  const storage = (
+    <>
+      <ImportHistory historyImport={historyImport} disabled={historyBusy} />
+      <ExportHistory disabled={historyBusy} />
+      <SettingCell
+        label={t('deleteAllSessions')}
+        status={null}
+        action={
+          <Button
+            variant="dangerOutlined"
+            size="m"
+            className={styles.cellButton}
+            disabled={historyBusy}
+            onClick={historyDelete.open}
+          >
+            {t('delete')}
+          </Button>
+        }
+      />
+    </>
+  )
+  const mobileContents: Record<MobilePage, ReactNode> = {
+    menu: (
+      <MobileSettingsMenu apiConfigured={Boolean(apiKeyEditor.apiKey)} onSelect={setMobilePage} />
+    ),
+    appearance,
+    connection: (
+      <>
+        {connection}
+        {apiKeyConfirm}
+        {model}
+      </>
+    ),
+    assistant: (
+      <>
+        <TtsVoiceSetting />
+        <LocationSetting />
+        <InstructionsSetting />
+      </>
+    ),
+    storage,
+    updates: <GitHubUpdates />,
+  }
+  const title = t(onMobileDetail ? mobileSections[mobilePage].label : 'settings')
   return (
     <>
       <Modal
-        title={t('settings')}
-        closable
-        className={styles.dialog}
-        mainClassName={styles.dialogMain}
-        onClose={() => {
-          if (!historyDelete.busy) {
-            historyImport.dismiss()
-            closeSettings()
-          }
-        }}
-      >
-        <div role="tablist" className={styles.navigation}>
-          {sections
-            .filter((item) => androidApp || item.value !== 'updates')
-            .map((item) => (
-              <button
-                key={item.value}
-                id={tabId + '-' + item.value}
-                type="button"
-                role="tab"
-                aria-selected={section === item.value}
-                aria-controls={tabId + '-content'}
-                className={clsx(styles.navItem, section === item.value && styles.navItemActive)}
-                onClick={() => setSection(item.value)}
-              >
-                {item.icon}
-                <span>{t(item.label)}</span>
-              </button>
-            ))}
-        </div>
-        <div
-          id={tabId + '-content'}
-          role="tabpanel"
-          aria-labelledby={tabId + '-' + section}
-          className={styles.content}
-        >
-          {section === 'general' ? (
-            <>
-              <ThemeSetting />
-              {androidApp ? <TypographySetting /> : null}
-              <LocaleSetting />
-              <TtsVoiceSetting />
-              <LocationSetting />
-              <SettingCell label={t('chatModel')} status={null} action={<ModelSelect />} />
-              <InstructionsSetting />
-            </>
-          ) : section === 'data' ? (
-            <>
-              <ApiKeyField editor={apiKeyEditor} />
-              {apiKeyEditor.apiKey ? (
-                <SettingCell
-                  label={t('apiKeySaved')}
-                  status={null}
-                  action={<ModelConnectionButton />}
+        title={
+          useMobileMenu ? (
+            <div className={styles.mobileTitle}>
+              {onMobileDetail ? (
+                <IconButton
+                  size="xl"
+                  className={styles.settingsBack}
+                  icon={<IconChevronRightOutline14 />}
+                  aria-label={t('settingsBack')}
+                  onClick={close}
                 />
               ) : null}
-              <ImportHistory historyImport={historyImport} disabled={historyBusy} />
-              <ExportHistory disabled={historyBusy} />
-              <SettingCell
-                label={t('deleteAllSessions')}
-                status={null}
-                action={
-                  <Button
-                    variant="dangerOutlined"
-                    size="m"
-                    className={styles.cellButton}
-                    disabled={historyBusy}
-                    onClick={historyDelete.open}
-                  >
-                    {t('delete')}
-                  </Button>
-                }
-              />
-              {isMobile ? <ApiKeyConfirm editor={apiKeyEditor} /> : null}
-            </>
+              <span ref={mobileHeading} tabIndex={-1}>
+                {title}
+              </span>
+            </div>
           ) : (
-            <GitHubUpdates />
-          )}
-        </div>
+            title
+          )
+        }
+        closable={!onMobileDetail}
+        className={clsx(styles.dialog, useMobileMenu && styles.mobileDialog)}
+        headerClassName={useMobileMenu ? styles.mobileHeader : undefined}
+        mainClassName={styles.dialogMain}
+        onClose={close}
+      >
+        {useMobileMenu ? (
+          <div
+            key={mobilePage}
+            role="region"
+            aria-label={title}
+            data-settings-content
+            className={styles.content}
+          >
+            {mobileContents[mobilePage]}
+          </div>
+        ) : (
+          <>
+            <div role="tablist" className={styles.navigation}>
+              {sections
+                .filter((item) => androidApp || item.value !== 'updates')
+                .map((item) => (
+                  <button
+                    key={item.value}
+                    id={tabId + '-' + item.value}
+                    type="button"
+                    role="tab"
+                    aria-selected={section === item.value}
+                    aria-controls={tabId + '-content'}
+                    className={clsx(styles.navItem, section === item.value && styles.navItemActive)}
+                    onClick={() => setSection(item.value)}
+                  >
+                    {item.icon}
+                    <span>{t(item.label)}</span>
+                  </button>
+                ))}
+            </div>
+            <div
+              id={tabId + '-content'}
+              role="tabpanel"
+              aria-labelledby={tabId + '-' + section}
+              data-settings-content
+              className={styles.content}
+            >
+              {section === 'general' ? (
+                <>
+                  {appearance}
+                  <TtsVoiceSetting />
+                  <LocationSetting />
+                  {model}
+                  <InstructionsSetting />
+                </>
+              ) : section === 'data' ? (
+                <>
+                  {connection}
+                  {storage}
+                  {apiKeyConfirm}
+                </>
+              ) : (
+                <GitHubUpdates />
+              )}
+            </div>
+          </>
+        )}
       </Modal>
       {historyImport.file ? <ImportConfirm historyImport={historyImport} /> : null}
       {historyDelete.opened ? <DeleteAllConfirm historyDelete={historyDelete} /> : null}

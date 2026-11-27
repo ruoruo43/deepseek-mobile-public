@@ -1,7 +1,8 @@
 import clsx from 'clsx'
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { useTranslate } from '../../i18n/index.js'
 import {
+  IconCloseOutline16,
   IconPanelLeftOutline16,
   IconSearchOutline16,
   IconSettingsOutline16,
@@ -27,6 +28,8 @@ import styles from './Sider.module.css'
 /** 展开的侧边栏：名称与收起按钮、开启新对话、按时间分组的会话列表、底部设置；移动端放在抽屉里，收起按钮关闭抽屉 */
 export const Sider = ({ mobile = false }: { mobile?: boolean }) => {
   const t = useTranslate()
+  const androidDrawer = mobile && androidApp
+  const searchInput = useRef<HTMLInputElement>(null)
   const sessions = useChatStore((state) => state.sessions)
   const activeId = useChatStore((state) => state.activeId)
   const pinnedIds = useSettings((state) => state.pinnedSessionIds)
@@ -105,6 +108,22 @@ export const Sider = ({ mobile = false }: { mobile?: boolean }) => {
     }
   }, [])
 
+  const newChatButton = (
+    <button
+      type="button"
+      className={styles.newChat}
+      onClick={() => {
+        newChat()
+        closeMobileSider()
+      }}
+    >
+      <span className={styles.newChatIcon}>
+        <NewChatIcon />
+      </span>
+      {t('newChat')}
+    </button>
+  )
+
   return (
     <div className={clsx(styles.sider, mobile && styles.mobile)}>
       <div className={styles.top}>
@@ -113,36 +132,37 @@ export const Sider = ({ mobile = false }: { mobile?: boolean }) => {
           <span>{t(androidApp ? 'conversationHistory' : 'appName')}</span>
         </div>
         <IconButton
-          size="m"
+          size={androidDrawer ? 'xl' : 'm'}
           icon={<IconPanelLeftOutline16 />}
           tooltip={t('collapseSiderbarButton')}
           tooltipPlacement="bottom"
           onClick={() => (mobile ? closeMobileSider() : setSiderCollapsed(true))}
         />
       </div>
-      <button
-        type="button"
-        className={styles.newChat}
-        onClick={() => {
-          newChat()
-          closeMobileSider()
-        }}
-      >
-        <span className={styles.newChatIcon}>
-          <NewChatIcon />
-        </span>
-        {t('newChat')}
-      </button>
-      <label className={styles.chatSearch}>
+      {androidDrawer ? null : newChatButton}
+      <div className={styles.chatSearch}>
         <IconSearchOutline16 />
         <input
+          ref={searchInput}
           type="search"
           aria-label={t('searchChats')}
           placeholder={t('searchChats')}
           value={search}
           onChange={(event) => setSearch(event.target.value)}
         />
-      </label>
+        {androidDrawer && search ? (
+          <IconButton
+            className={styles.clearSearch}
+            size="xl"
+            icon={<IconCloseOutline16 />}
+            aria-label={t('clearChatSearch')}
+            onClick={() => {
+              setSearch('')
+              searchInput.current?.focus({ preventScroll: true })
+            }}
+          />
+        ) : null}
+      </div>
       <div className={styles.listWrap}>
         <div className={styles.list}>
           {androidApp && !query && groups.length === 0 ? (
@@ -172,6 +192,7 @@ export const Sider = ({ mobile = false }: { mobile?: boolean }) => {
         </div>
       </div>
       <div className={styles.bottom}>
+        {androidDrawer ? newChatButton : null}
         <button type="button" className={styles.settings} onClick={() => openSettings('general')}>
           <span className={styles.settingsIcon}>
             <IconSettingsOutline16 />

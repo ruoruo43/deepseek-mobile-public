@@ -4,7 +4,7 @@ import { androidApp } from '../../services/android.js'
 import { ACCEPT } from '../../services/attachments.js'
 import { canAttachImages, useSettings } from '../../services/settings.js'
 import { IconButton } from '../base/IconButton.js'
-import { IconPaperclipOutline16 } from '../base/icons.js'
+import { IconChevronRightOutline14, IconPaperclipOutline16 } from '../base/icons.js'
 import { Modal } from '../base/Modal.js'
 import { showToast } from '../base/toastState.js'
 import { ensureApiKey } from '../settings/settingsDialogState.js'
@@ -134,24 +134,33 @@ export function AttachmentPicker({
                   disabled={!imagesAllowed}
                   onClick={() => pick(camera.current)}
                 >
-                  <CameraIcon />
-                  {t('takePhoto')}
+                  <span className={styles.actionIcon}>
+                    <CameraIcon />
+                  </span>
+                  <span className={styles.actionLabel}>{t('takePhoto')}</span>
+                  <IconChevronRightOutline14 />
                 </button>
                 <button
                   type="button"
                   disabled={!imagesAllowed}
                   onClick={() => pick(photos.current)}
                 >
-                  <PhotosIcon />
-                  {t('choosePhotos')}
+                  <span className={styles.actionIcon}>
+                    <PhotosIcon />
+                  </span>
+                  <span className={styles.actionLabel}>{t('choosePhotos')}</span>
+                  <IconChevronRightOutline14 />
                 </button>
                 <button
                   type="button"
                   autoFocus={!imagesAllowed}
                   onClick={() => pick(files.current)}
                 >
-                  <IconPaperclipOutline16 />
-                  {t('chooseFiles')}
+                  <span className={styles.actionIcon}>
+                    <IconPaperclipOutline16 />
+                  </span>
+                  <span className={styles.actionLabel}>{t('chooseFiles')}</span>
+                  <IconChevronRightOutline14 />
                 </button>
               </div>
               {imagesAllowed ? null : <p className={styles.hint}>{t('photosRequireFlash')}</p>}

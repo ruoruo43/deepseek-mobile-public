@@ -16,7 +16,7 @@ DS 对话是基于 DeepSeek API 的第三方 Android 对话客户端。首页、
 - 在输入框使用系统拍照、相册和文件选择。选取或粘贴的附件会立即上传到 DeepSeek。
 - 会话记录保存在本机，支持搜索、置顶和 ZIP 备份。DeepSeek API Key 用 Android Keystore 管理的密钥加密，备份不包含 API Key。
 - 聊天和主动使用的语音功能连接 DeepSeek。检查更新时只读取 GitHub 的公开发行信息。
-- 中文使用霞鹜文楷。通用设置提供四档字号和预览，西文优先使用设备已有的 Times New Roman，否则使用兼容字体 Tinos。可在本机导入已获授权的 TTF 或 OTF 字体。
+- 中文使用霞鹜文楷。「设置 → 外观与字号」提供四档字号和预览，西文优先使用设备已有的 Times New Roman，否则使用兼容字体 Tinos。可在本机导入已获授权的 TTF 或 OTF 字体。
 
 ## 开发
 

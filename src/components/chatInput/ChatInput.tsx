@@ -73,7 +73,7 @@ const Input = ({ sessionId }: { sessionId: string | null }) => {
       if (toggles.scrollWidth > toggles.clientWidth) {
         toggles.classList.add(styles.compactToggles)
       }
-      if (toggles.scrollWidth > toggles.clientWidth) {
+      if (!androidApp && toggles.scrollWidth > toggles.clientWidth) {
         toggles.classList.add(styles.stackedToggles)
       }
       toggles.classList.toggle(styles.collapsedToggles, toggles.scrollWidth > toggles.clientWidth)
@@ -236,9 +236,11 @@ const Input = ({ sessionId }: { sessionId: string | null }) => {
               aria-pressed={thinking}
               onClick={() => setThinking(!thinking)}
             >
-              <IconThinkOutline14 />
-              <span className={styles.toggleLabel}>{t('thinkingSwitch')}</span>
-              <span className={styles.shortLabel}>{t('thinkingShort')}</span>
+              <span className={styles.toggleFace}>
+                <IconThinkOutline14 />
+                <span className={styles.toggleLabel}>{t('thinkingSwitch')}</span>
+                <span className={styles.shortLabel}>{t('thinkingShort')}</span>
+              </span>
             </button>
           </Tooltip>
           <Tooltip content={t(flash ? 'deactivatedSearchTooltip' : 'flashSearchOnly')}>
@@ -250,9 +252,11 @@ const Input = ({ sessionId }: { sessionId: string | null }) => {
               disabled={!flash}
               onClick={() => setSearch(!search)}
             >
-              <IconGlobeLanguageOutline14 />
-              <span className={styles.toggleLabel}>{t('search')}</span>
-              <span className={styles.shortLabel}>{t('searchShort')}</span>
+              <span className={styles.toggleFace}>
+                <IconGlobeLanguageOutline14 />
+                <span className={styles.toggleLabel}>{t('search')}</span>
+                <span className={styles.shortLabel}>{t('searchShort')}</span>
+              </span>
             </button>
           </Tooltip>
         </div>

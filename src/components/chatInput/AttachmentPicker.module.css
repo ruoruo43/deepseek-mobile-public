@@ -17,34 +17,43 @@
 
 .actions {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 10px;
+  gap: 6px;
 }
 
 .actions button {
   display: flex;
-  flex-direction: column;
   align-items: center;
-  justify-content: center;
-  gap: 9px;
-  min-height: 84px;
-  padding: 4px 2px;
-  border: 1px solid transparent;
-  border-radius: 16px;
-  background: var(--dsw-specific-login-input);
+  gap: 12px;
+  min-height: 54px;
+  padding: 7px 12px 7px 8px;
+  border: 1px solid var(--ds-app-line);
+  border-radius: 11px;
+  background: var(--ds-app-canvas);
   color: var(--dsw-alias-label-primary);
   font: inherit;
-  font-size: 13px;
+  text-align: start;
   cursor: pointer;
 }
 
-.actions svg {
-  box-sizing: content-box;
-  width: 19px;
-  height: 19px;
-  padding: 7px;
-  border-radius: 11px;
+.actionIcon {
+  display: grid;
+  flex: 0 0 32px;
+  place-items: center;
+  height: 32px;
+  border-radius: 8px;
+  background: var(--ds-app-accent-soft);
   color: var(--dsw-alias-brand-text);
+}
+
+.actionLabel {
+  flex: 1;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.actions button > svg {
+  flex-shrink: 0;
+  color: var(--dsw-alias-label-secondary);
 }
 
 .actions button:active:not(:disabled) {
